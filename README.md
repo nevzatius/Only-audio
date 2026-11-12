@@ -76,3 +76,7 @@ powershell -File scripts/package.ps1      # dist/audio-only-v<sürüm>.zip (sür
 ```
 
 `dist/` git'e eklenmez. Paket yalnız `extension/` içeriğidir (`_metadata/` hariç).
+
+## Teşekkür ve lisans
+
+YouTube'da yalnız ses kancası fikri için [ganeshkumar269/audio-only-for-youtube](https://github.com/ganeshkumar269/audio-only-for-youtube) projesine teşekkürler; ayrıntı: [THIRD_PARTY.md](THIRD_PARTY.md). Lisans: [MIT](LICENSE).

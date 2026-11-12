@@ -85,6 +85,7 @@
 
   // ---- kanca ---------------------------------------------------------------
 
+  // Kanca yöntemi: ganeshkumar269/audio-only-for-youtube (MIT); bkz. THIRD_PARTY.md
   function installHook() {
     try {
       Object.defineProperty(Object.prototype, 'audio_only', {
