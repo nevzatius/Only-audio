@@ -46,9 +46,17 @@
 
 Tasarım ve gerekçe: [plan-faz5.md](plan-faz5.md).
 
-- **İzinsiz sitelerde başlık/favicon/adres yok.** `tabs` izni eklenmediği için `tab.title`, `tab.url` ve `tab.favIconUrl` yalnız host iznimiz olan sitelerde ve aktif sekmede dolu gelir. İzinsiz bir sitenin sesli sekmesi "(izinsiz sekme)" olarak listelenir; yalnız sessize alma çalışır. `tabs` izni bunu çözer ama kurulumda "göz atma geçmişini oku" uyarısı gösterir; bilerek eklenmedi.
+- **İzinsiz sitelerde başlık/favicon/adres yok.** `tabs` izni eklenmediği için `tab.title`, `tab.url` ve `tab.favIconUrl` yalnız host iznimiz olan sitelerde ve aktif sekmede dolu gelir. İzinsiz bir sitenin sesli sekmesi "(izinsiz sekme)" olarak listelenir; yalnız sessize alma çalışır. `tabs` izni bunu çözer ama kurulumda "göz atma geçmişini oku" uyarısı gösterir; bu yüzden kurulumda istenmez (bkz. v0.4.1).
 - **Yalnız üst çerçeve.** Betik `iframe` içindeki oynatıcılara (gömülü video) girmez. Gölge DOM içindeki `<video>` öğelerini `MutationObserver` ve belge düzeyindeki olay dinleyicileri görmez.
 - **DOM'a eklenmemiş `new Audio()` öğeleri** (ne `MutationObserver` ne belge olayları görür) kontrol edilmez.
 - **Site ses çubuğu geçersiz kılınır.** Popup'ta %100 altı bir değer verilmişken sitenin kendi ses çubuğu (ya da YouTube "kararlı ses") değeri değiştirirse betik geri yazar. Sitenin çubuğunu serbest bırakmak için popup'ta %100'e getirin.
 - **Sessize alma sekme düzeyindedir** (`tabs.update`); öğelerin `muted` değeri değişmez. Liste sesli, sessize alınmış ve popup'tan değer atanmış sekmeleri kapsar (sesi durmuş ama değeri atanmış sekme listede kalır). Sesi açılıp sessizleşen, değeri olmayan sekme popup yeniden açılınca listeden düşer.
 - **Testte `--mute-audio` ile `tab.audible` hiç true olmaz;** yerel fixture testleri `muteAudio: false` ile çok kısık bir ton çalar ([plan-faz5.md](plan-faz5.md)).
+
+## İsteğe bağlı `tabs` izni (v0.4.1)
+
+- `tabs`, manifestte `optional_permissions` altındadır; kurulumda uyarı çıkmaz. Popup'ın Ses bölümü, adresi gizli (izinsiz) sekme varken ve izin yokken "Sekme adlarını göster" düğmesini gösterir; izin tıklamayla (kullanıcı jesti) istenir.
+- İzin verilince izinsiz siteler başlık ve favicon ile listelenir ve eklenmemiş siteler için "Bu siteyi ekle" önerilir. **Kaydırıcı yine yalnız içerik betiği yüklü sitelerde (YouTube, Twitch, Kick, eklenenler) etkindir;** `tabs` izni betik enjekte etmez.
+- İzin geri alınırsa (`permissions.onRemoved`) liste yeniden kurulur ve başlıklar yine "(izinsiz sekme)" görünür. Popup kapalıyken geri alma bir sonraki açılışta yansır.
+- Bu izin verilince uzantı tüm sekmelerin adresini okuyabilir; kod yalnız sesli/sessize alınmış/değer atanmış sekmelerin başlık, adres ve simgesini kullanır ve hiçbirini saklamaz ya da göndermez.
+- Test: izin akışı (tarayıcı izin penceresi) otomatikleştirilmedi; karar mantığı `shouldOfferTabNames` birim testiyle kapsanır.

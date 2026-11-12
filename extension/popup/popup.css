@@ -31,6 +31,9 @@ input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
 .volume h2 { margin: 0 0 6px; font-size: 14px; }
 #volume-list { list-style: none; margin: 0; padding: 0; }
 #volume-list li { padding: 6px 0; }
+.tabnames { margin-top: 6px; }
+.tabnames button { width: 100%; padding: 6px 8px; cursor: pointer; }
+.tabnames .note { margin-top: 6px; }
 .vrow { display: grid; grid-template-columns: 16px 1fr auto; gap: 4px 8px; align-items: center; }
 .vrow .fav { width: 16px; height: 16px; }
 .vrow .title {

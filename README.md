@@ -38,7 +38,7 @@ The YouTube, Twitch and Kick paths rely on undocumented site internals and can b
 
 ### Install
 
-1. Get the extension folder: either download `audio-only-v0.4.0.zip` from the [Releases](../../releases) page and **unzip it**, or clone this repo and use its [extension/](extension/) folder.
+1. Get the extension folder: either download `audio-only-v0.4.1.zip` from the [Releases](../../releases) page and **unzip it**, or clone this repo and use its [extension/](extension/) folder.
 2. Open `brave://extensions` (or `chrome://extensions`).
 3. Turn on **Developer mode**.
 4. Click **Load unpacked** and select the unzipped folder (or `extension/`), i.e. the one containing `manifest.json`.
@@ -51,7 +51,7 @@ The browser reads the extension from that folder; moving or deleting it removes 
 - The toolbar popup has a master switch and per-site switches (YouTube / Twitch / Kick).
 - **Add a site:** open the page, click the extension icon, press **Add this site**, and grant the permission the browser asks for. Reload the page. Remove it with **Remove this site** or from the list in the popup. Built-in sites and non-http(s) pages cannot be added.
 - **Back to video:** the cover that replaces the player has a **Back to video** button that restores the normal player.
-- **Tab volume controller:** the **Volume** section of the popup lists tabs that are playing sound, muted tabs and tabs you have set a level for. Each row has the favicon, the title (click it to switch to that tab), a 0–100 slider and a mute button. The slider sets `volume` on every `<video>`/`<audio>` in the tab (including ones added later) and re-applies it if the site changes it; the value lasts until the tab is closed. Muting uses the browser's tab mute, which works on every site. The slider only works on YouTube, Twitch, Kick and sites you added; other tabs show it disabled, and since the extension has no `tabs` permission their title and address are hidden. Setting a level of 100% hands control back to the site's own volume bar. Boosting above 100% is not supported.
+- **Tab volume controller:** the **Volume** section of the popup lists tabs that are playing sound, muted tabs and tabs you have set a level for. Each row has the favicon, the title (click it to switch to that tab), a 0–100 slider and a mute button. The slider sets `volume` on every `<video>`/`<audio>` in the tab (including ones added later) and re-applies it if the site changes it; the value lasts until the tab is closed. Muting uses the browser's tab mute, which works on every site. The slider only works on YouTube, Twitch, Kick and sites you added; other tabs show it disabled, and their title and address are hidden unless you press **Show tab names**, which asks for the optional `tabs` permission (used only to list the name and icon of tabs that play sound; nothing is stored or sent). Revoking the permission restores the hidden-names behavior. Setting a level of 100% hands control back to the site's own volume bar. Boosting above 100% is not supported.
 
 ### Known limits
 
@@ -115,7 +115,7 @@ YouTube, Twitch ve Kick yolları belgelenmemiş site iç yapılarına dayanır; 
 
 ### Kurulum
 
-1. Uzantı klasörünü edinin: [Releases](../../releases) sayfasından `audio-only-v0.4.0.zip` dosyasını indirip **açın**, ya da depoyu klonlayıp [extension/](extension/) klasörünü kullanın.
+1. Uzantı klasörünü edinin: [Releases](../../releases) sayfasından `audio-only-v0.4.1.zip` dosyasını indirip **açın**, ya da depoyu klonlayıp [extension/](extension/) klasörünü kullanın.
 2. `brave://extensions` (veya `chrome://extensions`) adresini açın.
 3. **Geliştirici modu**nu açın.
 4. **Paketlenmemiş öğe yükle**'ye tıklayıp zip'ten çıkan klasörü (ya da `extension/`) seçin; içinde `manifest.json` olan klasör.
@@ -128,7 +128,7 @@ Tarayıcı uzantıyı bu klasörden okur; klasörü silerseniz veya taşırsanı
 - Araç çubuğu popup'ında ana anahtar ve site anahtarları (YouTube / Twitch / Kick) bulunur.
 - **Site ekleme:** sayfayı açın, uzantı simgesine tıklayın, **Bu siteyi ekle**'ye basın ve tarayıcının istediği izni verin. Sayfayı yenileyin. Kaldırmak için **Bu siteyi kaldır** ya da popup'taki listeden **Kaldır**. Yerleşik siteler ve http/https dışı sayfalar eklenemez.
 - **Videoya dön:** oynatıcının yerini alan kapaktaki **Videoya dön** düğmesi normal oynatıcıyı geri getirir.
-- **Sekme ses kontrolcüsü:** popup'taki **Ses** bölümü, ses çalan sekmeleri, sessize alınmış sekmeleri ve düzeyini ayarladığınız sekmeleri listeler. Her satırda favicon, başlık (tıklayınca o sekmeye geçer), 0–100 kaydırıcı ve sessize alma düğmesi vardır. Kaydırıcı, sekmedeki tüm `<video>`/`<audio>` öğelerinin `volume` değerini ayarlar (sonradan eklenenler dahil) ve site değiştirirse yeniden uygular; değer sekme kapanana kadar korunur. Sessize alma tarayıcının sekme susturmasını kullanır ve her sitede çalışır. Kaydırıcı yalnız YouTube, Twitch, Kick ve eklediğiniz sitelerde çalışır; diğer sekmelerde devre dışı görünür ve uzantının `tabs` izni olmadığından başlık ile adresleri gizlidir. %100'e getirmek kontrolü sitenin kendi ses çubuğuna geri verir. %100 üstüne yükseltme desteklenmez.
+- **Sekme ses kontrolcüsü:** popup'taki **Ses** bölümü, ses çalan sekmeleri, sessize alınmış sekmeleri ve düzeyini ayarladığınız sekmeleri listeler. Her satırda favicon, başlık (tıklayınca o sekmeye geçer), 0–100 kaydırıcı ve sessize alma düğmesi vardır. Kaydırıcı, sekmedeki tüm `<video>`/`<audio>` öğelerinin `volume` değerini ayarlar (sonradan eklenenler dahil) ve site değiştirirse yeniden uygular; değer sekme kapanana kadar korunur. Sessize alma tarayıcının sekme susturmasını kullanır ve her sitede çalışır. Kaydırıcı yalnız YouTube, Twitch, Kick ve eklediğiniz sitelerde çalışır; diğer sekmelerde devre dışı görünür ve başlık ve adresleri, **Sekme adlarını göster** düğmesiyle isteğe bağlı `tabs` izni verilmedikçe gizlidir (izin yalnız ses çalan sekmelerin adını ve simgesini listelemek için kullanılır; hiçbir veri kaydedilmez/gönderilmez). İzin geri alınırsa eski davranışa dönülür. %100'e getirmek kontrolü sitenin kendi ses çubuğuna geri verir. %100 üstüne yükseltme desteklenmez.
 
 ### Bilinen sınırlar
 

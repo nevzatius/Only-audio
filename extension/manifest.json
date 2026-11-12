@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Only Audio",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "YouTube, Twitch ve Kick'te yalnız sesi oynatır; eklediğiniz sitelerde videoyu gizler. Video indirmeyi ve çözmeyi azaltır.",
   "minimum_chrome_version": "120",
   "permissions": ["storage", "scripting", "activeTab", "declarativeNetRequestWithHostAccess"],
+  "optional_permissions": ["tabs"],
   "optional_host_permissions": ["*://*/*"],
   "host_permissions": [
     "*://*.youtube.com/*",

@@ -7,6 +7,7 @@ import {
   mergeTabs,
   tabOriginPattern,
   storeKey,
+  shouldOfferTabNames,
 } from '../../extension/shared/volume.js';
 import { hashPattern, genericScriptId } from '../../extension/shared/settings.js';
 
@@ -54,4 +55,15 @@ test('tabOriginPattern: yalnız http/https kaynağı', () => {
 test('storeKey ve betik kimliği özeti', () => {
   expect(storeKey(7)).toBe('vol:7');
   expect(genericScriptId('main', '*://a.com/*')).toBe('oa-generic-main-' + hashPattern('*://a.com/*'));
+});
+
+test('shouldOfferTabNames: yalnız izin yokken ve adresi gizli sekme varsa', () => {
+  const hidden = { id: 1 };
+  const shown = { id: 2, url: 'https://a.com/' };
+  expect(shouldOfferTabNames([hidden, shown], false)).toBe(true);
+  expect(shouldOfferTabNames([shown], false)).toBe(false);
+  expect(shouldOfferTabNames([], false)).toBe(false);
+  expect(shouldOfferTabNames([hidden], true)).toBe(false); // izin verilmişse düğme gizlenir
+  expect(shouldOfferTabNames(undefined, false)).toBe(false);
+  expect(shouldOfferTabNames([null, { id: 'x' }], false)).toBe(false);
 });

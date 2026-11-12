@@ -2,10 +2,12 @@
 // Sessize alma chrome.tabs.update({muted}) ile yapılır (izin gerektirmez, her sitede çalışır);
 // kaydırıcı yalnız içerik betiği yüklü sitelerde etkindir. Sözleşme: docs/plan-faz5.md.
 import { originPatternFor } from '../shared/settings.js';
-import { MSG, STORE_PREFIX, mergeTabs, percentToVolume, volumeToPercent, tabOriginPattern } from '../shared/volume.js';
+import { MSG, STORE_PREFIX, mergeTabs, shouldOfferTabNames, percentToVolume, volumeToPercent, tabOriginPattern } from '../shared/volume.js';
 
 const listEl = document.getElementById('volume-list');
 const emptyEl = document.getElementById('volume-empty');
+const tabNamesEl = document.getElementById('tabnames');
+const tabNamesBtn = document.getElementById('tabnames-btn');
 
 let addSiteFn = async () => false;
 
@@ -158,6 +160,11 @@ export async function refresh() {
     ]);
     tabs = mergeTabs(audible, muted, overridden);
   } catch (_e) {}
+  let hasTabs = false;
+  try {
+    hasTabs = await chrome.permissions.contains({ permissions: ['tabs'] });
+  } catch (_e) {}
+  tabNamesEl.hidden = !shouldOfferTabNames(tabs, hasTabs);
   const infos = await Promise.all(tabs.map(classify));
   listEl.replaceChildren(...tabs.map((t, i) => buildRow(t, infos[i])));
   emptyEl.hidden = tabs.length > 0;
@@ -165,5 +172,14 @@ export async function refresh() {
 
 export function initVolume({ addSite }) {
   addSiteFn = addSite;
+  // İstek, tıklama işleyicisinin ilk işi olmalı (kullanıcı jesti).
+  tabNamesBtn.addEventListener('click', () => {
+    chrome.permissions.request({ permissions: ['tabs'] }).then(refresh, () => {});
+  });
+  // İzin geri alınırsa (ör. tarayıcı ayarlarından) liste eski davranışa döner.
+  try {
+    chrome.permissions.onRemoved.addListener(() => refresh());
+    chrome.permissions.onAdded.addListener(() => refresh());
+  } catch (_e) {}
   refresh();
 }

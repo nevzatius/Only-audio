@@ -51,6 +51,13 @@ export function mergeTabs(...lists) {
   return out;
 }
 
+// Adres alanı boş gelen sekme, "tabs" izni olmadan başlığı/adresi/simgesi gizlenmiş sekmedir.
+// İzin verildiğinde bu alanlar dolu gelir; bu yüzden düğme yalnız izin yokken ve gizli sekme varken gösterilir.
+export function shouldOfferTabNames(tabs, hasTabsPermission) {
+  if (hasTabsPermission) return false;
+  return (Array.isArray(tabs) ? tabs : []).some((t) => t && typeof t.id === 'number' && !t.url);
+}
+
 // İzin sorgusu için sekme adresinin kaynağı ('https://ornek.com/*'); http/https dışı ya da adres yoksa null.
 // Not: adres alanı yalnız host iznimiz olan sekmelerde (ve aktif sekmede) dolu gelir.
 export function tabOriginPattern(url) {
