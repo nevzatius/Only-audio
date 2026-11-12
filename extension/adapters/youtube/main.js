@@ -110,6 +110,44 @@
     }
   }
 
+  // ---- canlı: ileri arabellek sınırı ---------------------------------------
+  // Canlı fallback'te YouTube 15-33 sn ileri arabellek tutar. Her append'den sonra
+  // currentTime + LIVE_BUFFER_AHEAD_SEC ötesi silinir (yalnız bypass reason=live).
+  const LIVE_BUFFER_AHEAD_SEC = 8;
+
+  function liveTrimActive() {
+    if (hookInstalled || !isWatch()) return false;
+    const b = readBypass();
+    return !!(b && b.reason === 'live');
+  }
+
+  function trimAhead(sb, video) {
+    try {
+      if (sb.updating || !video || !video.currentTime) return;
+      const limit = video.currentTime + LIVE_BUFFER_AHEAD_SEC;
+      const r = sb.buffered;
+      if (r.length === 0 || r.end(r.length - 1) <= limit + 0.5) return;
+      sb.remove(limit, Infinity);
+    } catch (_e) {}
+  }
+
+  function installBufferTrim() {
+    try {
+      const orig = MediaSource.prototype.addSourceBuffer;
+      MediaSource.prototype.addSourceBuffer = function (...args) {
+        const sb = orig.apply(this, args);
+        try {
+          sb.addEventListener('updateend', () => {
+            if (!liveTrimActive()) return;
+            const video = document.querySelector('#movie_player video');
+            trimAhead(sb, video);
+          });
+        } catch (_e) {}
+        return sb;
+      };
+    } catch (_e) {}
+  }
+
   // ---- oynatıcı işlemleri --------------------------------------------------
 
   function applyTiny(player) {
@@ -238,6 +276,7 @@
     const b = readBypass();
     if (watch && b && b.videoId !== vid) clearBypass();
     if (!readBypass()) installHook();
+    installBufferTrim();
     lastKey = watch ? vid : '';
     const [m, r] = baseState();
     mode = m;

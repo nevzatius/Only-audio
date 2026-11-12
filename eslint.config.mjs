@@ -39,6 +39,7 @@ const browserGlobals = {
   HTMLVideoElement: 'readonly',
   Event: 'readonly',
   CustomEvent: 'readonly',
+  MediaSource: 'readonly',
   globalThis: 'readonly',
   chrome: 'readonly',
 };

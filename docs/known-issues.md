@@ -28,12 +28,12 @@
 
 **Kick (aynı koruma, nedensellik kanıtlanmadı):** Kick adaptörü aynı örüntüyü paylaşıyor ve her çalıştırmada kaliteyi oynatmanın 0,1–1,8. sn'sinde uyguluyordu. Düzeltmeden önce 5 gerçek çalıştırmanın 2'sinde pencere ortasında oynatma duraksadı (`currentTime` artışı +10 ve +31, normal +46,5; ikincisinde bayt sınırı 56 bayt aşıldı). Tanı çalıştırmalarında (4) duraksama yakalanmadı, bu yüzden bu başarısızlıkların erken geçişten mi yoksa canlı yayın dalgalanmasından mı geldiği doğrulanmadı. Aynı `MIN_PLAY_SEC` koruması Kick'e de eklendi; sonrasında 6/6 geçti. Küçük örneklem: sorun yeniden görülürse bu notu gözden geçirin.
 
-## YouTube canlı: ileri arabellek 10 sn eşiğini aşıyor (test kırmızı)
+## YouTube canlı: ileri arabellek 10 sn eşiğini aşıyordu (düzeltildi)
 
-`tests/youtube.spec.ts` "YouTube canlı (@LofiGirl)" testi `LIVE_MAX_BUFFER_SEC = 10` eşiğiyle **başarısız**. Eşik gevşetilmedi.
+**Belirti:** `LIVE_MAX_BUFFER_SEC = 10` eşiğiyle canlı test başarısızdı. Reklamsız 144p içerikte ileri arabellek 15–33 sn (YouTube'un kendi canlı hedefi; `seekToLiveHead()` sonrası bile 13–17 sn).
 
-**Ölçüm (2026-11-12, reklamsız içerik, 144p fallback):** ileri arabellek 15–33 sn (üç çalıştırmada pencere maksimumu 25–33 sn); `currentTime` +44 sn/45 sn, `videoHeight` 144. Yani artış ve çözünürlük ölçütleri geçiyor, yalnız arabellek kalıyor. `seekToLiveHead()` sonrası bile 13–17 sn. Arabellek hedefini YouTube'un kendi canlı oynatma mantığı belirliyor.
+**Düzeltme:** `extension/adapters/youtube/main.js`: yalnız canlı fallback'te (bypass reason=live) `MediaSource.addSourceBuffer` sarılır; her `updateend`'de `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile silinir. Sonuç: pencere maksimumu 8,0 sn, `currentTime` +41/45 sn, 144p.
 
-**Neden adaptörde düzeltilmedi:** ileri arabelleği `SourceBuffer.remove` ile kırpmak oynatıcıya "arabellek düşük" dedirtir ve aynı segmentler yeniden indirilir (ağ artar, amaca ters). Karar kullanıcıya ait: eşiği ölçüme göre yeniden tanımlamak ya da başka bir yöntem aramak.
+**Bilinen risk (ölçülmedi):** Silinen ileri veri için oynatıcı aynı segmentleri yeniden isteyebilir; canlı bayt maliyeti ölçülmedi. Bayt eşiği olan bir canlı test yok.
 
 **Test notu:** Çerezsiz profilde reklam çıkabilir (ölçülen reklam: 32 sn ve ~144 sn; reklam akışı 876x493 ve tamamen arabelleğe alınıyor). Testler reklam bitene dek bekler/atlanabilir reklamı atlar; ölçüm yalnız içerikte yapılır.
