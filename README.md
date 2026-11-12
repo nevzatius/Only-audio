@@ -38,10 +38,10 @@ The YouTube, Twitch and Kick paths rely on undocumented site internals and can b
 
 ### Install
 
-1. Download this repo (or the release zip and extract it).
+1. Get the extension folder: either download `audio-only-v0.3.1.zip` from the [Releases](../../releases) page and **unzip it**, or clone this repo and use its [extension/](extension/) folder.
 2. Open `brave://extensions` (or `chrome://extensions`).
 3. Turn on **Developer mode**.
-4. Click **Load unpacked** and select the [extension/](extension/) folder (the one containing `manifest.json`).
+4. Click **Load unpacked** and select the unzipped folder (or `extension/`), i.e. the one containing `manifest.json`.
 
 The browser reads the extension from that folder; moving or deleting it removes the extension.
 
@@ -113,10 +113,10 @@ YouTube, Twitch ve Kick yolları belgelenmemiş site iç yapılarına dayanır; 
 
 ### Kurulum
 
-1. Bu depoyu indirin (ya da sürüm zip'ini çıkarın).
+1. Uzantı klasörünü edinin: [Releases](../../releases) sayfasından `audio-only-v0.3.1.zip` dosyasını indirip **açın**, ya da depoyu klonlayıp [extension/](extension/) klasörünü kullanın.
 2. `brave://extensions` (veya `chrome://extensions`) adresini açın.
 3. **Geliştirici modu**nu açın.
-4. **Paketlenmemiş öğe yükle**'ye tıklayıp [extension/](extension/) klasörünü (`manifest.json`'ın bulunduğu klasör) seçin.
+4. **Paketlenmemiş öğe yükle**'ye tıklayıp zip'ten çıkan klasörü (ya da `extension/`) seçin; içinde `manifest.json` olan klasör.
 
 Tarayıcı uzantıyı bu klasörden okur; klasörü silerseniz veya taşırsanız uzantı kaybolur.
 
