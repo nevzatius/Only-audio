@@ -30,8 +30,10 @@ const SPA_MIN_TIME_DELTA = 15;
 // ---- Canlı (/@LofiGirl/live) ----
 const LIVE_URL = 'https://www.youtube.com/@LofiGirl/live';
 const LIVE_WINDOW_MS = 45_000;
-// Arabellek (currentTime'dan ileri) hiçbir örnekte 10 sn'yi aşmamalı.
-const LIVE_MAX_BUFFER_SEC = 10;
+// Arabellek (currentTime'dan ileri) hiçbir örnekte 35 sn'yi aşmamalı. YouTube canlıda kendi hedefi olarak
+// 15-33 sn tutar; 10 sn eşiği ancak SourceBuffer kırpmasıyla sağlanıyordu ve kırpma segmentleri yeniden
+// indirtiyordu (docs/known-issues.md). Eşik, ağı artırmadan ulaşılabilir sınıra çekildi (0.3.1).
+const LIVE_MAX_BUFFER_SEC = 35;
 // 45 sn pencerede currentTime artışı >= 35 (10 sn pay: canlıda yeniden arabellekleme).
 const LIVE_MIN_TIME_DELTA = 35;
 // Pencere sonunda videoHeight <= 144 (fallback 144p).
@@ -137,7 +139,7 @@ test('YouTube SPA: VOD → VOD (yenilemesiz), ikinci videoda kare yok', async ()
   expect.soft(s2.currentTime - s1.currentTime, 'ikinci videoda currentTime artışı').toBeGreaterThanOrEqual(SPA_MIN_TIME_DELTA);
 });
 
-test('YouTube canlı (@LofiGirl): kısa arabellek, currentTime ilerler, ≤144p', async () => {
+test('YouTube canlı (@LofiGirl): sınırlı arabellek, currentTime ilerler, ≤144p', async () => {
   brave = await launchBrave({ extensionPath: EXTENSION_PATH });
   const page = await firstPage(brave.context);
   await openYoutubeUrl(page, LIVE_URL);

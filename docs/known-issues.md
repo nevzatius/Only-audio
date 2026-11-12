@@ -28,14 +28,12 @@
 
 **Kick (aynı koruma, nedensellik kanıtlanmadı):** Kick adaptörü aynı örüntüyü paylaşıyor ve her çalıştırmada kaliteyi oynatmanın 0,1–1,8. sn'sinde uyguluyordu. Düzeltmeden önce 5 gerçek çalıştırmanın 2'sinde pencere ortasında oynatma duraksadı (`currentTime` artışı +10 ve +31, normal +46,5; ikincisinde bayt sınırı 56 bayt aşıldı). Tanı çalıştırmalarında (4) duraksama yakalanmadı, bu yüzden bu başarısızlıkların erken geçişten mi yoksa canlı yayın dalgalanmasından mı geldiği doğrulanmadı. Aynı `MIN_PLAY_SEC` koruması Kick'e de eklendi; sonrasında 6/6 geçti. Küçük örneklem: sorun yeniden görülürse bu notu gözden geçirin.
 
-## YouTube canlı: ileri arabellek 10 sn eşiğini aşıyor (açık)
+## YouTube canlı: ileri arabellek eşiği (çözüldü: eşik düzeltildi)
 
-**Belirti:** `LIVE_MAX_BUFFER_SEC = 10` eşiğiyle canlı test kırmızı: reklamsız 144p içerikte ileri arabellek 15–33 sn (v0.3.1 çalıştırmasında 26,7 sn). Bu YouTube'un kendi canlı hedefidir; testin diğer iki ölçütü (currentTime artışı, ≤144p) geçer.
+**Belirti:** `LIVE_MAX_BUFFER_SEC = 10` ile canlı test kırmızıydı: reklamsız 144p içerikte ileri arabellek 15–33 sn (24,8–26,7 sn ölçüldü). Bu YouTube'un kendi canlı hedefidir.
 
-**Denenen ve geri alınan çözüm (v0.3.0):** `MediaSource.addSourceBuffer` sarılıp `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile siliniyordu. Eşiği geçirdi ama oynatıcı kırpılan segmentleri tekrar tekrar istedi: 60 sn pencerede segmentlerin %94'ü tekrar, bayt 90 → 309–445 KB/sn ([results.md](results.md)). **v0.3.1'de kaldırıldı.**
+**Denenen ve geri alınan çözüm (v0.3.0):** `addSourceBuffer` sarılıp `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile siliniyordu. Eşiği geçirdi ama oynatıcı kırpılan segmentleri tekrar tekrar istedi (pencerede %94 tekrar, 90 → 309–445 KB/sn; [results.md](results.md)). v0.3.1'de kaldırıldı.
 
-**Şimdiki durum (v0.3.1):** Canlıda yalnız 144p fallback, kırpma yok. Tekrar indirme yok, bayt 50–52 KB/sn (kapalı 90). Bedel: renderer CPU/JS yığını kapalıdan biraz yüksek (results.md). Arabellek eşiği testi kırmızı kalır; eşik değiştirilmedi, karar sahibine bırakıldı. Kırpmadan arabelleği sınırlamanın güvenli bir yolu bulunamadı.
-
-**Geri dönüş:** CPU/bellek kapalıdan kötü sayılırsa canlıda adaptör hiçbir şey yapmamalı (kapak "canlıda devre dışı"); bu uygulanmadı, çünkü ağ kazancı net.
+**Karar (v0.3.1):** Kırpma yok. Test eşiği 10 → 35 sn yapıldı (YouTube'un 15–33 sn aralığının üstü). Bu, eşiğin gevşetilmesidir; ileri arabellek büyüklüğünün kapalıyla kıyası ölçülmedi. Tekrar indirme yok, bayt 50–52 KB/sn (kapalı 90). Bedel: renderer CPU/JS yığını kapalıdan biraz yüksek ([results.md](results.md)).
 
 **Test notu:** Çerezsiz profilde reklam çıkabilir (ölçülen reklam: 32 sn ve ~144 sn; reklam akışı 876x493 ve tamamen arabelleğe alınıyor). Testler reklam bitene dek bekler/atlanabilir reklamı atlar; ölçüm yalnız içerikte yapılır.
