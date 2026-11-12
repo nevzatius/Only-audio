@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Only Audio</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>🎧 Only Audio</h1>
+  <label class="row main">
+    <span>Uzantı açık</span>
+    <input type="checkbox" id="toggle-enabled">
+  </label>
+  <div class="sites">
+    <label class="row">
+      <span>YouTube</span>
+      <input type="checkbox" id="toggle-youtube">
+    </label>
+    <label class="row">
+      <span>Twitch</span>
+      <input type="checkbox" id="toggle-twitch">
+    </label>
+    <label class="row">
+      <span>Kick</span>
+      <input type="checkbox" id="toggle-kick">
+    </label>
+  </div>
+  <p id="note" class="note" hidden>Açık sekmeleri yenileyin.</p>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

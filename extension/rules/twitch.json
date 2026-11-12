@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "transform": {
+          "queryTransform": {
+            "addOrReplaceParams": [{ "key": "allow_audio_only", "value": "true" }]
+          }
+        }
+      }
+    },
+    "condition": {
+      "urlFilter": "||usher.ttvnw.net/api/v2/channel/hls/",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  }
+]

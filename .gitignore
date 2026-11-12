@@ -1,0 +1,17 @@
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Tarayıcının uzantı klasörüne yazdığı üretilmiş dizin
+extension/_metadata/
+
+# Test profilleri ve geçici dosyalar (profiller repo dışında tutulur; yine de)
+only-audio-profiles/
+p-*/
+tmp/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

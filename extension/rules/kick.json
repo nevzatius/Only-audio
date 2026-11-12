@@ -1,0 +1,21 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "transform": {
+          "queryTransform": {
+            "addOrReplaceParams": [{ "key": "allow_audio_only", "value": "true" }]
+          }
+        }
+      }
+    },
+    "condition": {
+      "urlFilter": ".playback.live-video.net/api/video/v1/",
+      "initiatorDomains": ["kick.com"],
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  }
+]

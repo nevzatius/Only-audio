@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Only Audio",
+  "version": "0.2.0",
+  "description": "YouTube, Twitch ve Kick'te yalnız sesi oynatır; video indirmeyi ve çözmeyi azaltır.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "scripting", "declarativeNetRequestWithHostAccess"],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.twitch.tv/*",
+    "*://*.ttvnw.net/*",
+    "*://*.kick.com/*",
+    "*://*.live-video.net/*"
+  ],
+  "background": { "service_worker": "background/sw.js", "type": "module" },
+  "action": { "default_title": "Only Audio", "default_popup": "popup/popup.html" },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*", "*://www.twitch.tv/*", "*://kick.com/*", "*://www.kick.com/*"],
+      "js": ["content/bridge.js"],
+      "css": ["content/cover.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      { "id": "twitch", "enabled": true, "path": "rules/twitch.json" },
+      { "id": "kick", "enabled": true, "path": "rules/kick.json" }
+    ]
+  }
+}
