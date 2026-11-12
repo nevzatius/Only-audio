@@ -15,3 +15,6 @@ tmp/
 *.log
 .DS_Store
 Thumbs.db
+
+# Paket çıktıları (scripts/package; bkz. README)
+dist/

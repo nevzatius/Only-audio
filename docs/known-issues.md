@@ -34,6 +34,6 @@
 
 **Düzeltme:** `extension/adapters/youtube/main.js`: yalnız canlı fallback'te (bypass reason=live) `MediaSource.addSourceBuffer` sarılır; her `updateend`'de `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile silinir. Sonuç: pencere maksimumu 8,0 sn, `currentTime` +41/45 sn, 144p.
 
-**Bilinen risk (ölçülmedi):** Silinen ileri veri için oynatıcı aynı segmentleri yeniden isteyebilir; canlı bayt maliyeti ölçülmedi. Bayt eşiği olan bir canlı test yok.
+**Risk gerçekleşti (ölçüldü, 2026-11-12, [results.md](results.md)):** Kırpılan ileri veri için oynatıcı aynı segmentleri tekrar tekrar istiyor. 60 sn pencerede gelen segmentlerin %94'ü tekrar (409/435 ve 275/295); ön denemede aynı segment 35 kereye kadar istendi. Bayt hızı 309–445 KB/sn; uzantı kapalıyken 90 KB/sn, recon'daki kırpmasız 144p ~27 KB/sn. Yani canlı fallback şu an ağı azaltmak yerine ~3–5× artırıyor; renderer CPU'su da kapalıdan yüksek. Bayt eşiği olan bir canlı test olmadığı için testler yakalamadı. **Açık sorun**; Faz 4 uzantı koduna dokunmadığı için düzeltilmedi. Olası yönler (denenmedi): kırpmayı kaldırıp ileri arabelleği başka yolla sınırlamak veya canlıda kırpmasız 144p'ye düşmek.
 
 **Test notu:** Çerezsiz profilde reklam çıkabilir (ölçülen reklam: 32 sn ve ~144 sn; reklam akışı 876x493 ve tamamen arabelleğe alınıyor). Testler reklam bitene dek bekler/atlanabilir reklamı atlar; ölçüm yalnız içerikte yapılır.
