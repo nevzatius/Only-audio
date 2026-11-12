@@ -28,12 +28,14 @@
 
 **Kick (aynı koruma, nedensellik kanıtlanmadı):** Kick adaptörü aynı örüntüyü paylaşıyor ve her çalıştırmada kaliteyi oynatmanın 0,1–1,8. sn'sinde uyguluyordu. Düzeltmeden önce 5 gerçek çalıştırmanın 2'sinde pencere ortasında oynatma duraksadı (`currentTime` artışı +10 ve +31, normal +46,5; ikincisinde bayt sınırı 56 bayt aşıldı). Tanı çalıştırmalarında (4) duraksama yakalanmadı, bu yüzden bu başarısızlıkların erken geçişten mi yoksa canlı yayın dalgalanmasından mı geldiği doğrulanmadı. Aynı `MIN_PLAY_SEC` koruması Kick'e de eklendi; sonrasında 6/6 geçti. Küçük örneklem: sorun yeniden görülürse bu notu gözden geçirin.
 
-## YouTube canlı: ileri arabellek 10 sn eşiğini aşıyordu (düzeltildi)
+## YouTube canlı: ileri arabellek 10 sn eşiğini aşıyor (açık)
 
-**Belirti:** `LIVE_MAX_BUFFER_SEC = 10` eşiğiyle canlı test başarısızdı. Reklamsız 144p içerikte ileri arabellek 15–33 sn (YouTube'un kendi canlı hedefi; `seekToLiveHead()` sonrası bile 13–17 sn).
+**Belirti:** `LIVE_MAX_BUFFER_SEC = 10` eşiğiyle canlı test kırmızı: reklamsız 144p içerikte ileri arabellek 15–33 sn (v0.3.1 çalıştırmasında 26,7 sn). Bu YouTube'un kendi canlı hedefidir; testin diğer iki ölçütü (currentTime artışı, ≤144p) geçer.
 
-**Düzeltme:** `extension/adapters/youtube/main.js`: yalnız canlı fallback'te (bypass reason=live) `MediaSource.addSourceBuffer` sarılır; her `updateend`'de `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile silinir. Sonuç: pencere maksimumu 8,0 sn, `currentTime` +41/45 sn, 144p.
+**Denenen ve geri alınan çözüm (v0.3.0):** `MediaSource.addSourceBuffer` sarılıp `currentTime + 8 sn` ötesi `SourceBuffer.remove` ile siliniyordu. Eşiği geçirdi ama oynatıcı kırpılan segmentleri tekrar tekrar istedi: 60 sn pencerede segmentlerin %94'ü tekrar, bayt 90 → 309–445 KB/sn ([results.md](results.md)). **v0.3.1'de kaldırıldı.**
 
-**Risk gerçekleşti (ölçüldü, 2026-11-12, [results.md](results.md)):** Kırpılan ileri veri için oynatıcı aynı segmentleri tekrar tekrar istiyor. 60 sn pencerede gelen segmentlerin %94'ü tekrar (409/435 ve 275/295); ön denemede aynı segment 35 kereye kadar istendi. Bayt hızı 309–445 KB/sn; uzantı kapalıyken 90 KB/sn, recon'daki kırpmasız 144p ~27 KB/sn. Yani canlı fallback şu an ağı azaltmak yerine ~3–5× artırıyor; renderer CPU'su da kapalıdan yüksek. Bayt eşiği olan bir canlı test olmadığı için testler yakalamadı. **Açık sorun**; Faz 4 uzantı koduna dokunmadığı için düzeltilmedi. Olası yönler (denenmedi): kırpmayı kaldırıp ileri arabelleği başka yolla sınırlamak veya canlıda kırpmasız 144p'ye düşmek.
+**Şimdiki durum (v0.3.1):** Canlıda yalnız 144p fallback, kırpma yok. Tekrar indirme yok, bayt 50–52 KB/sn (kapalı 90). Bedel: renderer CPU/JS yığını kapalıdan biraz yüksek (results.md). Arabellek eşiği testi kırmızı kalır; eşik değiştirilmedi, karar sahibine bırakıldı. Kırpmadan arabelleği sınırlamanın güvenli bir yolu bulunamadı.
+
+**Geri dönüş:** CPU/bellek kapalıdan kötü sayılırsa canlıda adaptör hiçbir şey yapmamalı (kapak "canlıda devre dışı"); bu uygulanmadı, çünkü ağ kazancı net.
 
 **Test notu:** Çerezsiz profilde reklam çıkabilir (ölçülen reklam: 32 sn ve ~144 sn; reklam akışı 876x493 ve tamamen arabelleğe alınıyor). Testler reklam bitene dek bekler/atlanabilir reklamı atlar; ölçüm yalnız içerikte yapılır.

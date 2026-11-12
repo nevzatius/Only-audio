@@ -2,7 +2,7 @@
 
 Brave (ve diğer Chromium tabanlı tarayıcılar) için MV3 uzantısı. Hedef: video sitelerinde videoyu indirmeden ve çözmeden **yalnız sesi** oynatmak; ağ, çözme ve tampon belleği kullanımını düşürmek. Oynatıcının yerini bir kapak alır; "Videoya dön" düğmesiyle görüntü geri gelir.
 
-Sürüm: 0.3.0. Ölçüm sonuçları: [docs/results.md](docs/results.md). Bilinen sorunlar: [docs/known-issues.md](docs/known-issues.md).
+Sürüm: 0.3.1. Ölçüm sonuçları: [docs/results.md](docs/results.md). Bilinen sorunlar: [docs/known-issues.md](docs/known-issues.md).
 
 ## Desteklenen siteler
 
@@ -11,7 +11,7 @@ Sürüm: 0.3.0. Ölçüm sonuçları: [docs/results.md](docs/results.md). Biline
 | Site | Kullanılan yol | Gerçek yalnız ses mi? | Fallback |
 |---|---|---|---|
 | YouTube (VOD) | Sayfa bağlamında `audio_only` player değişkeni kancası; SABR yalnız ses gönderir | **Evet** | 144p |
-| YouTube (canlı yayın) | Kanca oynatmayı bozduğu için **kullanılmaz** | **Hayır, yalnız fallback** | 144p (ileri arabellek 8 sn ile sınırlı; bkz. [bilinen sorunlar](docs/known-issues.md)) |
+| YouTube (canlı yayın) | Kanca oynatmayı bozduğu için **kullanılmaz** | **Hayır, yalnız fallback** | 144p (kırpmasız; bkz. [bilinen sorunlar](docs/known-issues.md)) |
 | Twitch (canlı) | `declarativeNetRequest` ile master playlist isteğine `allow_audio_only=true` + oynatıcıda `audio_only` kalitesi | **Evet** | 160p |
 | Kick (canlı) | `declarativeNetRequest` ile IVS playback isteğine `allow_audio_only=true` + oynatıcıda `audio_only` kalitesi | **Evet** | 160p |
 | Eklediğiniz siteler | Genel adaptör: `<video>` gizlenir, kapak gösterilir; bulunursa hls.js benzeri oynatıcı en düşük kaliteye çekilir | **Hayır.** İndirme ve çözme durmaz; kazanç görünürlük/kapak, tarayıcının gizli sekme tasarrufu | En düşük kalite yalnızca en iyi çabayla |
@@ -24,7 +24,7 @@ Notlar:
 
 ## Kurulum (Brave: "Paketlenmemiş öğe yükle")
 
-1. [Sürüm paketini](#paket-oluşturma) (`dist/audio-only-v0.3.0.zip`) bir klasöre çıkarın, ya da doğrudan bu deponun [extension/](extension/) klasörünü kullanın.
+1. [Sürüm paketini](#paket-oluşturma) (`dist/audio-only-v0.3.1.zip`) bir klasöre çıkarın, ya da doğrudan bu deponun [extension/](extension/) klasörünü kullanın.
 2. Brave'de `brave://extensions` adresini açın.
 3. Sağ üstten **Geliştirici modu**nu açın.
 4. **Paketlenmemiş öğe yükle**'ye tıklayın ve `manifest.json` dosyasının bulunduğu klasörü seçin (zip'i çıkardıysanız çıkan klasör).
@@ -50,7 +50,7 @@ Bu genel adaptör videoyu **indirmeyi durdurmaz** (yukarıdaki tabloya bakın).
 
 Ayrıntı ve ölçümler [docs/known-issues.md](docs/known-issues.md) ve [docs/results.md](docs/results.md) içinde. Özet:
 
-- **YouTube canlı yayın gerçek yalnız ses değil**, yalnızca 144p fallback. **Ölçüldü: şu an ağı azaltmıyor, artırıyor** (ileri arabellek kırpma aynı segmentleri tekrar indiriyor; 90 KB/sn → 309–445 KB/sn). Canlı yayında uzantıyı YouTube için kapatmanız önerilir; ayrıntı: [docs/results.md](docs/results.md), [known-issues](docs/known-issues.md).
+- **YouTube canlı yayın gerçek yalnız ses değil**, yalnızca 144p fallback. Ölçüldü: ağ ~%42 düşer (90 → 50–52 KB/sn) ama video hâlâ çözülür; renderer CPU'su ve JS yığını kapalıdan biraz yüksektir. Ağ tasarrufu istiyorsanız açık bırakabilirsiniz; CPU/bellek öncelikliyse canlıda uzantıyı kapatın. Ayrıntı: [docs/results.md](docs/results.md), [known-issues](docs/known-issues.md).
 - Gizli sekmede bellek/CPU ölçülemedi (ölçüm ortamında sekme gizlenemedi); görünür sekme sonuçları [docs/results.md](docs/results.md)'de.
 - Twitch ve Kick'te audio_only ile 160p arasındaki ağ farkı küçüktür (~%15); asıl kazanç video çözmenin tamamen durmasıdır.
 - Twitch'te oynatıcı bazen `audio_only` geçişinden sonra duraklayabilir; uzantı geçişi oynatmanın ilk 5 sn'sinden sonra yapar.

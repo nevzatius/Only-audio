@@ -22,7 +22,8 @@ Tüm "gizli sekme" koşulları (4 site × kapalı/açık × 2 tekrar) **ölçül
 | YouTube VOD | kapalı | 112,5 / 112,6 | 1809 / 1809 | 854 | 53,7 / 55,2 | 287,0 / 289,5 | 76,4 / 77,9 | 524,5 / 533,6 | 17,5 / 16,6 | 6,3 / 5,7 |
 | YouTube VOD | açık | 34,3 / 31,7 | 0 / 0 | 0 | 55,0 / 56,1 | 245,6 / 241,1 | 68,1 / 64,1 | 469,6 / 470,0 | 3,9 / 4,2 | 0,1 / 0,1 |
 | YouTube canlı | kapalı | 90,9 / 89,9 | 1812 / 1810 | 1280 | 86,2 / 98,0 | 337,8 / 398,9 | 91,5 / 90,4 | 601,6 / 653,3 | 15,1 / 14,8 | 10,8 / 11,4 |
-| YouTube canlı | açık (144p fallback) | **444,5 / 308,8** | 1201 / 1212 | 256 | 117,3 / 118,6 | 602,7 / 435,3 | 93,8 / 92,7 | 876,4 / 674,4 | 20,4 / 18,4 | 9,4 / 8,8 |
+| YouTube canlı | açık (144p fallback, kırpmasız, v0.3.1) | **52,3 / 50,0** | 1811 / 1811 | 256 | 123,2 / 106,1 | 501,8 / 426,0 | 94,6 / 96,4 | 793,2 / 692,4 | 18,0 / 17,2 | 13,2 / 13,1 |
+| YouTube canlı | açık (v0.3.0, 8 sn kırpmalı; kaldırıldı) | 444,5 / 308,8 | 1201 / 1212 | 256 | 117,3 / 118,6 | 602,7 / 435,3 | 93,8 / 92,7 | 876,4 / 674,4 | 20,4 / 18,4 | 9,4 / 8,8 |
 | Twitch | kapalı | 417,6 / 382,7 | 3616 / 3613 | 1280 | 103,8 / 145,7 | 626,2 / 751,4 | 101,6 / 102,2 | 892,4 / 1024,5 | 36,4 / 37,6 | 18,7 / 18,8 |
 | Twitch | açık (audio_only) | 33,8 / 33,9 | 0 / 0 | 0 | 111,9 / 125,7 | 538,8 / 670,5 | 87,4 / 89,3 | 787,8 / 921,4 | 30,5 / 33,5 | 9,7 / 9,1 |
 | Kick | kapalı | 439,8 / 440,3 | 3613 / 3612 | 1280 | 65,4 / 69,4 | 542,9 / 549,6 | 119,7 / 134,3 | 914,3 / 942,0 | 55,7 / 56,7 | 53,0 / 54,4 |
@@ -32,9 +33,11 @@ Okuma:
 
 - **Ağ ve çözme:** YouTube VOD, Twitch ve Kick'te beklenen kazanç ölçüldü: bayt ~3,4× (VOD), ~12× (Twitch), ~14× (Kick) düştü; çözülen kare 0. Twitch/Kick "kapalı" varsayılan kalitesi 720p–1080p kaynak.
 - **Bellek ve CPU:** Renderer belleği açıkken düşük çıktı (VOD ~%15, Twitch/Kick ~%10–15), ama tekrarlar arası oynaklık (Twitch kapalı 626 / 751 MB) fark kadar büyük; Twitch/Kick bellek farkı **kesin sayılmamalı**. En net kazanç YouTube VOD'da: renderer CPU ~%17 → ~%4, GPU CPU ~%6 → ~%0,1. Twitch/Kick açıkken renderer CPU'su yalnız ~%10–15 düştü; kare çözülmemesine rağmen yüksek kalmasının nedeni ölçülmedi. Kick'te GPU CPU yalnız ~%20 azaldı; nedeni ölçülmedi.
-- **YouTube canlı uzantı açıkken kapalıdan KÖTÜ:** bayt 3,4–4,9× **arttı** (90 → 309–445 KB/sn); JS yığını ve renderer CPU'su da arttı, renderer belleği iki tekrarda farklı yönde ama ortalamada yüksek. Aşağıya bakın.
+- **YouTube canlı:** v0.3.0'daki kırpma ağı 3,4–4,9× **artırıyordu** (90 → 309–445 KB/sn). v0.3.1'de kırpma kaldırıldı: 144p kırpmasız **50–52 KB/sn** (kapalıdan ~%42 az). Ama renderer CPU'su (17–18 % vs 15 %), JS yığını (106–123 vs 86–98 MB) ve çoğu tekrarda renderer belleği kapalıdan yüksek; yani canlıda kazanç yalnız ağdadır. Aşağıya bakın.
 
-## YouTube canlı: arabellek kırpma segmentleri yeniden indirtiyor
+## YouTube canlı: arabellek kırpma segmentleri yeniden indirtiyordu (v0.3.0; kaldırıldı)
+
+Aşağıdaki tablo v0.3.0 (kırpmalı) içindir. v0.3.1 yeniden ölçümü en altta.
 
 Uzantı canlı fallback'te `SourceBuffer.remove` ile `currentTime + 8 sn` ötesini siliyor. Ölçüm, her `/videoplayback` yanıtının UMP `MEDIA_HEADER` parçalarını çözüp (itag, segment sıra no, başlangıç aralığı) üçlüsünün kaç kez geldiğini sayar (`init` segmentleri hariç). Tüm oturum ve 60 sn pencere ayrı sayılır.
 
@@ -48,6 +51,20 @@ Uzantı canlı fallback'te `SourceBuffer.remove` ile `currentTime + 8 sn` ötesi
 Sonuç: **evet, yeniden indiriyor, ve çok.** Kapalıyken hemen hiç tekrar yok (≤1 segment); açıkken 60 sn pencerede gelen segmentlerin %94'ü (409/435 ve 275/295) daha önce alınmışın tekrarı. İndirilen medyanın ~%90'ı tekrar. Bu yüzden 144p fallback'in beklenen ~27 KB/sn'si yerine 309–445 KB/sn ölçüldü; uzantı kapalıyken (720p) 90 KB/sn. Yani canlıda uzantı şu an ağı **azaltmıyor, artırıyor**. Bu betik yalnız ölçer; uzantı koduna dokunulmadı. Bkz. [known-issues.md](known-issues.md).
 
 Sınırlar: UMP başlık alan numaraları (itag 3, sıra no 9, aralık 6, header_id 1) `googlevideo` kitaplığı belgelerinden hatırlanarak alındı; çıktıyla (bilinen itag'ler, artan sıra no, makul medya boyutları) tutarlı ama resmi şemayla doğrulanmadı. "Aralık" alanı 0 geldiği için parçalı teslimden ayırt edilmez; ancak kapalıyken aynı yöntem ≤1 tekrar saydığından sayılan tekrarlar parçalı teslimle açıklanamaz. Tek yayın (Lofi Girl), 2 tekrar. "Toplam medya" bayt sütunu yanıttaki MEDIA parçalarının toplamıdır, ağ baytından (üstteki KB/sn) biraz farklı olabilir.
+
+### v0.3.1: kırpma kaldırıldı, 144p kırpmasız (2026-11-12)
+
+`node scripts/measure.ts --sites yt-live --vis visible --ext on --runs 2` (ham veri: [results-raw-live-0.3.1.json](results-raw-live-0.3.1.json); "kapalı" satırları yukarıdaki ilk ölçümden, yeniden ölçülmedi).
+
+| Uzantı | Tekrar | İstek | Segment | Benzersiz | Tekrar eden | Toplam medya | Pencere: segment | Pencere: tekrar |
+|---|---|---|---|---|---|---|---|---|
+| açık, kırpmasız | 1 | 43 | 92 | 91 | 1 | 6,6 MB | 50 | 0 |
+| açık, kırpmasız | 2 | 39 | 91 | 91 | 0 | 6,6 MB | 48 | 0 |
+
+- Tekrar indirme yok (kapalıyla aynı düzey). Bayt 50–52 KB/sn: kapalı 90, kırpmalı 309–445. Recon'daki ~27 KB/sn'ye ulaşmadı (o ölçüm farklı yayın/zaman; neden doğrulanmadı).
+- Oynatma sağlam: Δ currentTime 60,3–60,4 sn, videoWidth 256, kare akıyor (144p çözülüyor).
+- **Maliyet:** renderer CPU ~%17–18 (kapalı ~%15), JS yığını daha yüksek, GPU CPU ~%13 (kapalı ~%11); bellek tekrarlar arası oynak ama ortalamada yüksek. 2 tekrar, kesin değil.
+- `tests/youtube.spec.ts` canlı testi hâlâ **kırmızı**, yalnız ileri arabellek eşiğinde (10 sn; ölçülen 26,7 sn). currentTime artışı ve ≤144p geçiyor. Eşik değiştirilmedi.
 
 ## Ölçülemeyenler / sınırlar
 

@@ -1,0 +1,122 @@
+[
+ {
+  "site": "yt-live",
+  "ext": "on",
+  "vis": "visible",
+  "run": 1,
+  "status": "ok",
+  "startedAt": "2026-11-12T15:02:21.666Z",
+  "notes": [
+   "UMP örnek başlıklar: [{\"id\":0,\"itag\":140,\"seq\":153384,\"init\":false,\"len\":82167,\"startMs\":766919993,\"range\":0,\"durMs\":0,\"t\":1794495745612},{\"id\":1,\"itag\":244,\"seq\":153384,\"init\":false,\"len\":202121,\"startMs\":766920000,\"range\":0,\"durMs\":0,\"t\":1794495745612},{\"id\":0,\"itag\":251,\"seq\":-1,\"init\":true,\"len\":284,\"startMs\":-1,\"range\":0,\"durMs\":0,\"t\":1794495745614},{\"id\":1,\"itag\":788,\"seq\":-1,\"init\":true,\"len\":744,\"startMs\":-1,\"range\":0,\"durMs\":0,\"t\":1794495745614},{\"id\":2,\"itag\":251,\"seq\":1,\"init\":false,\"len\":103611,\"startMs\":0,\"range\":284,\"durMs\":6301,\"t\":1794495745614},{\"id\":3,\"itag\":788,\"seq\":1,\"init\":false,\"len\":382685,\"startMs\":0,\"range\":744,\"durMs\":6280,\"t\":1794495745614}]",
+   "uzantı açık ama kare artışı 1811"
+  ],
+  "switched": null,
+  "visibilityState": "visible",
+  "coverMode": "fallback",
+  "adSamples": 0,
+  "windowSec": 60.4,
+  "kbPerSec": 52.3,
+  "frameDelta": 1811,
+  "videoWidthEnd": 256,
+  "videoHeightEnd": 144,
+  "timeDelta": 60.4,
+  "jsHeapMB": 123.2,
+  "totalMB": 793.2,
+  "gpuMB": 94.6,
+  "rendererSumMB": 568.8,
+  "rendererMB": 501.8,
+  "totalCpuPct": 34.4,
+  "gpuCpuPct": 13.2,
+  "rendererCpuPct": 18,
+  "ump": {
+   "requests": 43,
+   "bodiesParsed": 26,
+   "bodiesFailed": 16,
+   "segments": 92,
+   "uniqueSegments": 91,
+   "repeatedSegments": 1,
+   "repeatedBytes": 42212,
+   "mediaBytes": 6782811,
+   "winSegments": 50,
+   "winRepeated": 0,
+   "winRepeatedBytes": 0,
+   "winMediaBytes": 3218770,
+   "itags": {
+    "140": 34,
+    "244": 1,
+    "251": 9,
+    "278": 33,
+    "394": 9,
+    "395": 5,
+    "788": 1
+   },
+   "topRepeats": [
+    "395:4:89630 x2",
+    "140:153384:0 x1",
+    "244:153384:0 x1",
+    "251:1:284 x1",
+    "788:1:744 x1",
+    "251:1:342 x1"
+   ]
+  }
+ },
+ {
+  "site": "yt-live",
+  "ext": "on",
+  "vis": "visible",
+  "run": 2,
+  "status": "ok",
+  "startedAt": "2026-11-12T15:05:06.850Z",
+  "notes": [
+   "uzantı açık ama kare artışı 1811"
+  ],
+  "switched": null,
+  "visibilityState": "visible",
+  "coverMode": "fallback",
+  "adSamples": 0,
+  "windowSec": 60.3,
+  "kbPerSec": 50,
+  "frameDelta": 1811,
+  "videoWidthEnd": 256,
+  "videoHeightEnd": 144,
+  "timeDelta": 60.3,
+  "jsHeapMB": 106.1,
+  "totalMB": 692.4,
+  "gpuMB": 96.4,
+  "rendererSumMB": 470,
+  "rendererMB": 426,
+  "totalCpuPct": 33.4,
+  "gpuCpuPct": 13.1,
+  "rendererCpuPct": 17.2,
+  "ump": {
+   "requests": 39,
+   "bodiesParsed": 24,
+   "bodiesFailed": 13,
+   "segments": 91,
+   "uniqueSegments": 91,
+   "repeatedSegments": 0,
+   "repeatedBytes": 0,
+   "mediaBytes": 6899165,
+   "winSegments": 48,
+   "winRepeated": 0,
+   "winRepeatedBytes": 0,
+   "winMediaBytes": 3077016,
+   "itags": {
+    "140": 33,
+    "244": 1,
+    "251": 9,
+    "278": 32,
+    "394": 13,
+    "788": 3
+   },
+   "topRepeats": [
+    "140:153417:0 x1",
+    "244:153417:0 x1",
+    "251:1:300 x1",
+    "788:1:768 x1",
+    "788:2:309182 x1",
+    "788:3:514241 x1"
+   ]
+  }
+ }
+]
