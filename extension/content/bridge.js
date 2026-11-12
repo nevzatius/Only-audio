@@ -110,5 +110,17 @@
     render();
   });
 
+  // Popup'tan kapatma (YouTube): açık sekme kancasız yeniden yüklenir, konum ?t= ile korunur.
+  // Twitch/Kick'te açık sekme davranışı değişmedi ("Açık sekmeleri yenileyin" notu geçerli).
+  if (location.hostname === 'www.youtube.com') {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local' || !(changes.enabled || changes.sites)) return;
+      chrome.storage.local.get(['enabled', 'sites']).then((raw) => {
+        const off = raw.enabled === false || (raw.sites && raw.sites.youtube === false);
+        if (off) send('restore');
+      });
+    });
+  }
+
   send('hello');
 })();

@@ -8,7 +8,7 @@ Derleme adımı yok. Uzantı düz JS. Yeni npm paketi eklenmez. `playwright inst
 
 | Dosyalar | Sahip |
 |---|---|
-| `playwright.config.ts`, `tests/helpers/**`, `tests/youtube-vod.spec.ts`, `tests/twitch.spec.ts` | Ajan A |
+| `playwright.config.ts`, `tests/helpers/**`, `tests/youtube.spec.ts`, `tests/twitch.spec.ts` | Ajan A |
 | `extension/manifest.json`, `extension/background/**`, `extension/shared/**`, `extension/popup/**`, `extension/content/**`, `extension/rules/**`, `tests/unit/**` | Ajan B |
 | `extension/adapters/youtube/**` | Ajan C |
 | `extension/adapters/twitch/**` | Ajan D |
@@ -113,7 +113,7 @@ Genel aç/kapa + site başına anahtar (`youtube`, `twitch`). `chrome.storage.lo
 
 **Bu değerler test geçsin diye gevşetilmez.** Tutmuyorsa dur, ölçtüğün değerlerle orkestratöre raporla.
 
-### `tests/youtube-vod.spec.ts`: `aqz-KE-bpKQ`, 45 sn, sekme görünür
+### `tests/youtube.spec.ts`: `aqz-KE-bpKQ`, 45 sn, sekme görünür
 
 | Ölçüt | Eşik | Kaynak |
 |---|---|---|

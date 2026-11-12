@@ -174,10 +174,10 @@ export async function openKickChannel(page: Page, channel: string, waitMs = 30_0
   return { playing: false, blocked: null };
 }
 
-/** YouTube videosunu aç, çerez onayını geç, oynatmayı başlat. Gezinme anını (ms) döndürür. */
-export async function openYoutube(page: Page, videoId: string): Promise<number> {
+/** YouTube sayfasını (URL) aç, çerez onayını geç, oynatmayı başlat. Gezinme anını (ms) döndürür. */
+export async function openYoutubeUrl(page: Page, url: string): Promise<number> {
   const t0 = Date.now();
-  await page.goto('https://www.youtube.com/watch?v=' + videoId, { waitUntil: 'domcontentloaded' });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   await dismissYoutubeConsent(page);
   // otomatik oynatma bayrağı var; yine de başlamazsa tetikle
   for (let i = 0; i < 10; i++) {
@@ -191,6 +191,77 @@ export async function openYoutube(page: Page, videoId: string): Promise<number> 
     await sleep(1000);
   }
   return t0;
+}
+
+/** YouTube videosunu aç, çerez onayını geç, oynatmayı başlat. Gezinme anını (ms) döndürür. */
+export function openYoutube(page: Page, videoId: string): Promise<number> {
+  return openYoutubeUrl(page, 'https://www.youtube.com/watch?v=' + videoId);
+}
+
+export interface PlaybackStats extends VideoStats {
+  videoHeight: number;
+  /** currentTime'dan ilerideki arabellek uzunluğu (sn); arabellek yoksa 0. */
+  bufferedAhead: number;
+}
+
+/** videoStats + videoHeight + ileri arabellek. Sayfa yeniden yüklenirken null döner. */
+export async function playbackStats(page: Page): Promise<PlaybackStats | null> {
+  return page.evaluate(() => {
+    const vids = Array.from(document.querySelectorAll('video'));
+    const v = vids.sort((a, b) => b.currentTime - a.currentTime)[0];
+    if (!v) return { found: false, totalVideoFrames: 0, videoWidth: 0, videoHeight: 0, currentTime: 0, paused: true, readyState: 0, bufferedAhead: 0 };
+    const q = v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : { totalVideoFrames: 0 };
+    let ahead = 0;
+    for (let i = 0; i < v.buffered.length; i++) {
+      if (v.buffered.start(i) <= v.currentTime + 0.1 && v.buffered.end(i) >= v.currentTime) ahead = v.buffered.end(i) - v.currentTime;
+    }
+    return {
+      found: true,
+      totalVideoFrames: q.totalVideoFrames,
+      videoWidth: v.videoWidth,
+      videoHeight: v.videoHeight,
+      currentTime: v.currentTime,
+      paused: v.paused,
+      readyState: v.readyState,
+      bufferedAhead: ahead,
+    };
+  }).catch(() => null);
+}
+
+/** Geçerli /watch sayfasının video kimliği (SPA gezinmesinde de güncel). */
+export async function currentVideoId(page: Page): Promise<string> {
+  return page.evaluate(() => new URLSearchParams(location.search).get('v') || '').catch(() => '');
+}
+
+/**
+ * İlgili videolar listesinden canlı olmayan, farklı bir VOD bağlantısı seçer ve gerçek
+ * fare tıklamasıyla açar (YouTube içi SPA gezinmesi). Tıklanan video kimliğini döndürür.
+ */
+export async function clickRelatedVod(page: Page, excludeId: string): Promise<string> {
+  for (let i = 0; i < 30; i++) {
+    const id = await page.evaluate((exclude) => {
+      for (const a of Array.from(document.querySelectorAll('a[href^="/watch?v="]'))) {
+        const href = a.getAttribute('href') || '';
+        const vid = new URLSearchParams(href.split('?')[1] || '').get('v') || '';
+        if (!vid || vid === exclude || href.includes('list=')) continue;
+        const card = a.closest('ytd-compact-video-renderer, yt-lockup-view-model, ytd-video-renderer') as HTMLElement | null;
+        if (!card || !a.getBoundingClientRect().width) continue;
+        // Canlı / yayın öncesi kartları ele.
+        if (/(LIVE|CANLI|watching|izliyor)/i.test(card.innerText || '')) continue;
+        a.setAttribute('data-oa-pick', '1');
+        return vid;
+      }
+      return '';
+    }, excludeId).catch(() => '');
+    if (id) {
+      const link = page.locator('a[data-oa-pick="1"]').first();
+      await link.scrollIntoViewIfNeeded();
+      await link.click({ timeout: 5000 });
+      return id;
+    }
+    await sleep(1000);
+  }
+  throw new Error('İlgili videolar listesinde tıklanabilir VOD bağlantısı bulunamadı');
 }
 
 /** TWITCH_CHANNEL ya da kategori sayfasındaki ilk canlı kanal. Kanal adı (küçük harf) döner. */
