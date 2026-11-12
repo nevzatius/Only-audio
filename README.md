@@ -1,82 +1,153 @@
 # Only Audio
 
-Brave (ve diğer Chromium tabanlı tarayıcılar) için MV3 uzantısı. Hedef: video sitelerinde videoyu indirmeden ve çözmeden **yalnız sesi** oynatmak; ağ, çözme ve tampon belleği kullanımını düşürmek. Oynatıcının yerini bir kapak alır; "Videoya dön" düğmesiyle görüntü geri gelir.
+**English | [Türkçe](#türkçe)**
 
-Sürüm: 0.3.1. Ölçüm sonuçları: [docs/results.md](docs/results.md). Bilinen sorunlar: [docs/known-issues.md](docs/known-issues.md).
+---
 
-## Desteklenen siteler
+## English
 
-"Gerçek yalnız ses" = sunucudan video hiç istenmez/çözülmez (çözülen kare 0, `videoWidth` 0). "Fallback" = video yine iner, ama en düşük kalitede (YouTube 144p, Twitch/Kick 160p); bunu yalnız gerçek yol çalışmazsa veya kullanılamıyorsa kullanırız.
+An MV3 extension for Brave (and other Chromium browsers) that plays only the audio of YouTube, Twitch and Kick streams, so the video is neither downloaded nor decoded.
 
-| Site | Kullanılan yol | Gerçek yalnız ses mi? | Fallback |
+### Why
+
+Chromium stops decoding video in a hidden tab after about 10 seconds but keeps downloading it. This extension asks the site for audio only, so both the download and the decoding stop. Measured on a visible tab, 60 s window, 2 runs each (details: [docs/results.md](docs/results.md)):
+
+| Site | Network (KB/s) off → on | Decoded frames off → on | Renderer CPU off → on |
 |---|---|---|---|
-| YouTube (VOD) | Sayfa bağlamında `audio_only` player değişkeni kancası; SABR yalnız ses gönderir | **Evet** | 144p |
-| YouTube (canlı yayın) | Kanca oynatmayı bozduğu için **kullanılmaz** | **Hayır, yalnız fallback** | 144p (kırpmasız; bkz. [bilinen sorunlar](docs/known-issues.md)) |
-| Twitch (canlı) | `declarativeNetRequest` ile master playlist isteğine `allow_audio_only=true` + oynatıcıda `audio_only` kalitesi | **Evet** | 160p |
-| Kick (canlı) | `declarativeNetRequest` ile IVS playback isteğine `allow_audio_only=true` + oynatıcıda `audio_only` kalitesi | **Evet** | 160p |
-| Eklediğiniz siteler | Genel adaptör: `<video>` gizlenir, kapak gösterilir; bulunursa hls.js benzeri oynatıcı en düşük kaliteye çekilir | **Hayır.** İndirme ve çözme durmaz; kazanç görünürlük/kapak, tarayıcının gizli sekme tasarrufu | En düşük kalite yalnızca en iyi çabayla |
+| YouTube VOD | ~112 → ~33 (~3.4x less) | 1809 → 0 | ~17% → ~4% |
+| Twitch | ~400 → ~34 (~12x less) | ~3600 → 0 | ~37% → ~32% |
+| Kick | ~440 → ~30 (~14x less) | ~3600 → 0 | ~56% → ~50% |
 
-Notlar:
+Memory savings are modest: about 10–15% of renderer memory, and run-to-run variation is as large as the difference, so treat it as approximate. Most of a tab's memory is the page itself (JS heap, DOM, player UI), which stays regardless of whether video is fetched.
 
-- YouTube VOD, Twitch ve Kick yolları belgelenmemiş site iç yapılarına dayanır (player değişkeni, React fiber, IVS oynatıcı örneği). Site güncellemesiyle kırılabilirler; kırılırsa fallback devreye girer. Ayrıntı ve riskler: [docs/recon.md](docs/recon.md).
-- YouTube'da video parçasını ağ düzeyinde engellemek mümkün değildir (ses ve video aynı isteğin gövdesinde ayrışır), bu yüzden YouTube'da DNR kullanılmaz.
-- Chromium, gizli sekmede video çözmeyi zaten ~10 sn sonra durdurur ama indirmeyi sürdürür. Uzantının asıl kazancı ağ, tampon belleği ve **görünür ama izlenmeyen** sekmelerdedir.
+Not measured: hidden tabs (the test environment never hid a tab), ads, Premium accounts, embedded players. Only tested on Brave (Chromium 120+).
 
-## Kurulum (Brave: "Paketlenmemiş öğe yükle")
+### Supported sites
 
-1. [Sürüm paketini](#paket-oluşturma) (`dist/audio-only-v0.3.1.zip`) bir klasöre çıkarın, ya da doğrudan bu deponun [extension/](extension/) klasörünü kullanın.
-2. Brave'de `brave://extensions` adresini açın.
-3. Sağ üstten **Geliştirici modu**nu açın.
-4. **Paketlenmemiş öğe yükle**'ye tıklayın ve `manifest.json` dosyasının bulunduğu klasörü seçin (zip'i çıkardıysanız çıkan klasör).
-5. "Only Audio" listede görünür; araç çubuğundaki uzantı simgesinden sabitleyebilirsiniz.
+| Site | Method | True audio-only? | Fallback |
+|---|---|---|---|
+| YouTube (VOD) | `audio_only` player variable hook in the page context; SABR sends audio only | Yes | 144p |
+| YouTube (live) | The hook breaks live playback, so it is not used | No, fallback only | 144p |
+| Twitch (live) | `declarativeNetRequest` adds `allow_audio_only=true` to the playlist request + `audio_only` quality in the player | Yes | 160p |
+| Kick (live) | Same approach on the IVS playback request | Yes | 160p |
+| Other sites (you add them) | Generic adapter: hides `<video>`, shows a cover | No. Download and decoding continue; limited benefit | Best effort |
 
-Zip'i çıkarmadan yüklenmez: Brave paketlenmemiş uzantıyı klasörden okur. Klasörü sildiğinizde veya taşıdığınızda uzantı kaybolur.
+YouTube live: the 144p fallback cuts network by ~42% (90 → ~51 KB/s) but video is still decoded, and CPU and JS heap are slightly higher than with the extension off. If CPU or memory matter more than bandwidth, turn the extension off for live streams.
 
-Kullanım: video sitesini açın; uzantı açıkken ses-only otomatik başlar. Açık sekmeler uzantıyı açıp kapatınca yenilenmelidir. Popup'taki **Uzantı açık** anahtarı her şeyi, site anahtarları (YouTube / Twitch / Kick) yalnız ilgili siteyi kapatır.
+The YouTube, Twitch and Kick paths rely on undocumented site internals and can break when the sites change; the fallback then applies. See [docs/recon.md](docs/recon.md).
 
-## Site ekleme
+### Install
 
-Yerleşik adaptörü olmayan bir sitede:
+1. Download this repo (or the release zip and extract it).
+2. Open `brave://extensions` (or `chrome://extensions`).
+3. Turn on **Developer mode**.
+4. Click **Load unpacked** and select the [extension/](extension/) folder (the one containing `manifest.json`).
 
-1. O sitenin sayfasını açın, uzantı simgesine tıklayın.
-2. **Bu siteyi ekle**'ye basın; Brave o alan adı için erişim izni ister, onaylayın.
-3. Sayfayı yenileyin: `<video>` gizlenir, kapak görünür.
+The browser reads the extension from that folder; moving or deleting it removes the extension.
 
-Kaldırmak için aynı sayfada **Bu siteyi kaldır** ya da popup'taki listeden **Kaldır**. Kaldırma sayfa yenilemeden etkili olur ve verilen site izni geri alınır. http/https dışı sayfalar ile yerleşik siteler (youtube.com, twitch.tv, kick.com) eklenemez.
+### Usage
 
-Bu genel adaptör videoyu **indirmeyi durdurmaz** (yukarıdaki tabloya bakın).
+- Open a supported site; audio-only starts automatically while the extension is on. Tabs that were already open need a reload after toggling.
+- The toolbar popup has a master switch and per-site switches (YouTube / Twitch / Kick).
+- **Add a site:** open the page, click the extension icon, press **Add this site**, and grant the permission the browser asks for. Reload the page. Remove it with **Remove this site** or from the list in the popup. Built-in sites and non-http(s) pages cannot be added.
+- **Back to video:** the cover that replaces the player has a **Back to video** button that restores the normal player.
 
-## Bilinen sınırlar
+### Known limits
 
-Ayrıntı ve ölçümler [docs/known-issues.md](docs/known-issues.md) ve [docs/results.md](docs/results.md) içinde. Özet:
+Details in [docs/known-issues.md](docs/known-issues.md).
 
-- **YouTube canlı yayın gerçek yalnız ses değil**, yalnızca 144p fallback. Ölçüldü: ağ ~%42 düşer (90 → 50–52 KB/sn) ama video hâlâ çözülür; renderer CPU'su ve JS yığını kapalıdan biraz yüksektir. Ağ tasarrufu istiyorsanız açık bırakabilirsiniz; CPU/bellek öncelikliyse canlıda uzantıyı kapatın. Ayrıntı: [docs/results.md](docs/results.md), [known-issues](docs/known-issues.md).
-- Gizli sekmede bellek/CPU ölçülemedi (ölçüm ortamında sekme gizlenemedi); görünür sekme sonuçları [docs/results.md](docs/results.md)'de.
-- Twitch ve Kick'te audio_only ile 160p arasındaki ağ farkı küçüktür (~%15); asıl kazanç video çözmenin tamamen durmasıdır.
-- Twitch'te oynatıcı bazen `audio_only` geçişinden sonra duraklayabilir; uzantı geçişi oynatmanın ilk 5 sn'sinden sonra yapar.
-- Kick, otomasyona karşı Cloudflare bot kontrolü uygulayabilir; bu uzantıyı değil testleri etkiler.
-- Reklam sırasındaki davranış ölçülmedi. VOD/klip (Twitch/Kick), `music.youtube.com`, gömülü oynatıcı ve Premium hesap ölçülmedi.
-- Yalnız Brave (Chromium 120+) üzerinde denendi.
+- YouTube live is not true audio-only (see above).
+- On Twitch and Kick the network difference between `audio_only` and 160p is small (~15%); the real gain is that decoding stops.
+- Twitch may occasionally stall after the switch to `audio_only`; the extension waits 5 s of playback before switching.
+- Kick may show a Cloudflare bot check to automated browsers; this affects the tests, not the extension.
 
-## Geliştirme
+### Tests
 
 ```
-npm install                 # Playwright ve eslint (tarayıcı indirilmez; sistemdeki Brave kullanılır)
-npm test                    # Playwright + sistem Brave'i (CDP ile bağlanır); canlı siteler gerekir
+npm install      # Playwright and eslint; no browser download
+npm test         # npx playwright test
 npm run lint
-node scripts/measure.ts     # Faz 4 ölçümü; sonuçlar docs/results-raw.json, özet docs/results.md
 ```
 
-Testler ve ölçüm her zaman ayrı bir `--user-data-dir` profili kullanır (çalıştırma sonunda silinir); gerçek Brave profilinize dokunulmaz. Brave yolu: `C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`.
+Tests use the system Brave (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`), started outside Playwright with `--remote-debugging-port` and attached via `chromium.connectOverCDP`. Each run uses a separate temporary `--user-data-dir` that is deleted afterwards; your real profile is not touched. Tests need network access to the live sites.
 
-### Paket oluşturma
+Packaging: `powershell -File scripts/package.ps1` creates `dist/audio-only-v<version>.zip`.
+
+### Credits and license
+
+Thanks to [ganeshkumar269/audio-only-for-youtube](https://github.com/ganeshkumar269/audio-only-for-youtube) for the YouTube audio-only hook idea; see [THIRD_PARTY.md](THIRD_PARTY.md). License: [MIT](LICENSE).
+
+---
+
+## Türkçe
+
+Brave (ve diğer Chromium tabanlı tarayıcılar) için MV3 uzantısı: YouTube, Twitch ve Kick'te yalnız sesi oynatır; video ne indirilir ne çözülür.
+
+### Neden
+
+Chromium gizli sekmede video çözmeyi ~10 sn sonra durdurur ama indirmeye devam eder. Bu uzantı siteden yalnız ses ister; böylece hem indirme hem çözme durur. Görünür sekmede, 60 sn pencerede, her koşul 2 tekrar ölçüldü (ayrıntı: [docs/results.md](docs/results.md)):
+
+| Site | Ağ (KB/sn) kapalı → açık | Çözülen kare kapalı → açık | Renderer CPU kapalı → açık |
+|---|---|---|---|
+| YouTube VOD | ~112 → ~33 (~3,4× az) | 1809 → 0 | ~%17 → ~%4 |
+| Twitch | ~400 → ~34 (~12× az) | ~3600 → 0 | ~%37 → ~%32 |
+| Kick | ~440 → ~30 (~14× az) | ~3600 → 0 | ~%56 → ~%50 |
+
+Bellek kazancı mütevazı: renderer belleğinde yaklaşık %10–15; tekrarlar arası oynaklık farkın kendisi kadar büyük, bu yüzden yaklaşık sayın. Bir sekmenin belleğinin çoğu sayfanın kendisidir (JS yığını, DOM, oynatıcı arayüzü) ve video indirilse de indirilmese de kalır.
+
+Ölçülmeyenler: gizli sekme (ölçüm ortamında sekme gizlenemedi), reklamlar, Premium hesap, gömülü oynatıcı. Yalnız Brave'de (Chromium 120+) denendi.
+
+### Desteklenen siteler
+
+| Site | Yol | Gerçek yalnız ses mi? | Fallback |
+|---|---|---|---|
+| YouTube (VOD) | Sayfa bağlamında `audio_only` player değişkeni kancası; SABR yalnız ses gönderir | Evet | 144p |
+| YouTube (canlı) | Kanca canlı oynatmayı bozduğu için kullanılmaz | Hayır, yalnız fallback | 144p |
+| Twitch (canlı) | `declarativeNetRequest` ile playlist isteğine `allow_audio_only=true` + oynatıcıda `audio_only` kalitesi | Evet | 160p |
+| Kick (canlı) | IVS playback isteğinde aynı yaklaşım | Evet | 160p |
+| Diğer siteler (siz eklersiniz) | Genel adaptör: `<video>` gizlenir, kapak gösterilir | Hayır. İndirme ve çözme sürer; kazanç sınırlı | En iyi çaba |
+
+YouTube canlı: 144p fallback ağı ~%42 azaltır (90 → ~51 KB/sn) ama video yine çözülür; CPU ve JS yığını uzantı kapalıyken olduğundan biraz yüksektir. Bant genişliğinden çok CPU/bellek önemliyse canlı yayınlarda uzantıyı kapatın.
+
+YouTube, Twitch ve Kick yolları belgelenmemiş site iç yapılarına dayanır; site güncellenince kırılabilir, o durumda fallback devreye girer. Bkz. [docs/recon.md](docs/recon.md).
+
+### Kurulum
+
+1. Bu depoyu indirin (ya da sürüm zip'ini çıkarın).
+2. `brave://extensions` (veya `chrome://extensions`) adresini açın.
+3. **Geliştirici modu**nu açın.
+4. **Paketlenmemiş öğe yükle**'ye tıklayıp [extension/](extension/) klasörünü (`manifest.json`'ın bulunduğu klasör) seçin.
+
+Tarayıcı uzantıyı bu klasörden okur; klasörü silerseniz veya taşırsanız uzantı kaybolur.
+
+### Kullanım
+
+- Desteklenen bir siteyi açın; uzantı açıkken yalnız ses otomatik başlar. Önceden açık sekmeler, uzantıyı açıp kapattıktan sonra yenilenmelidir.
+- Araç çubuğu popup'ında ana anahtar ve site anahtarları (YouTube / Twitch / Kick) bulunur.
+- **Site ekleme:** sayfayı açın, uzantı simgesine tıklayın, **Bu siteyi ekle**'ye basın ve tarayıcının istediği izni verin. Sayfayı yenileyin. Kaldırmak için **Bu siteyi kaldır** ya da popup'taki listeden **Kaldır**. Yerleşik siteler ve http/https dışı sayfalar eklenemez.
+- **Videoya dön:** oynatıcının yerini alan kapaktaki **Videoya dön** düğmesi normal oynatıcıyı geri getirir.
+
+### Bilinen sınırlar
+
+Ayrıntı: [docs/known-issues.md](docs/known-issues.md).
+
+- YouTube canlı gerçek yalnız ses değildir (yukarıya bakın).
+- Twitch ve Kick'te `audio_only` ile 160p arasındaki ağ farkı küçüktür (~%15); asıl kazanç çözmenin durmasıdır.
+- Twitch'te oynatıcı `audio_only` geçişinden sonra ara sıra duraklayabilir; uzantı geçişi oynatmanın ilk 5 sn'sinden sonra yapar.
+- Kick, otomasyona Cloudflare bot kontrolü gösterebilir; bu uzantıyı değil testleri etkiler.
+
+### Testler
 
 ```
-powershell -File scripts/package.ps1      # dist/audio-only-v<sürüm>.zip (sürüm manifest.json'dan)
+npm install      # Playwright ve eslint; tarayıcı indirilmez
+npm test         # npx playwright test
+npm run lint
 ```
 
-`dist/` git'e eklenmez. Paket yalnız `extension/` içeriğidir (`_metadata/` hariç).
+Testler sistemdeki Brave'i (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`) Playwright dışında `--remote-debugging-port` ile başlatır ve `chromium.connectOverCDP` ile bağlanır. Her çalıştırma ayrı, geçici bir `--user-data-dir` kullanır ve sonunda siler; gerçek profilinize dokunulmaz. Testler canlı sitelere erişim gerektirir.
 
-## Teşekkür ve lisans
+Paket: `powershell -File scripts/package.ps1` → `dist/audio-only-v<sürüm>.zip`.
+
+### Teşekkür ve lisans
 
 YouTube'da yalnız ses kancası fikri için [ganeshkumar269/audio-only-for-youtube](https://github.com/ganeshkumar269/audio-only-for-youtube) projesine teşekkürler; ayrıntı: [THIRD_PARTY.md](THIRD_PARTY.md). Lisans: [MIT](LICENSE).
