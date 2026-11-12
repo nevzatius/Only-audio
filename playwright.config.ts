@@ -19,6 +19,8 @@ export default defineConfig({
     { name: 'youtube', testMatch: /youtube\.spec\.ts/, retries: 0 },
     // Yerel fixture, ağ yok: aralıklı hataya yer yok (retries 0).
     { name: 'generic', testMatch: /generic\.spec\.ts/, retries: 0 },
+    // Yerel fixture testleri + bir YouTube SPA testi; aralıklı hataya yer yok (retries 0).
+    { name: 'volume', testMatch: /volume\.spec\.ts/, retries: 0 },
     { name: 'twitch', testMatch: /twitch\.spec\.ts/, retries: 1 },
     { name: 'kick', testMatch: /kick\.spec\.ts/, retries: 1 },
   ],

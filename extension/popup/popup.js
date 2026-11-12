@@ -1,4 +1,5 @@
 import { normalize, originPatternFor, patternHost, isBuiltInHost } from '../shared/settings.js';
+import { initVolume } from './volume.js';
 
 const enabledEl = document.getElementById('toggle-enabled');
 const siteEls = {
@@ -88,13 +89,14 @@ async function save() {
   noteEl.hidden = false;
 }
 
+// Kullanıcı jestinden çağrılmalı; izin verildi mi diye çözülür.
 function addSite(pattern) {
   // permissions.request kullanıcı jestinden çağrılmalı: tıklama işleyicisinin ilk işi bu.
-  chrome.permissions.request({ origins: [pattern] }).then(
+  return chrome.permissions.request({ origins: [pattern] }).then(
     async (granted) => {
       if (!granted) {
         showMsg('İzin verilmedi.');
-        return;
+        return false;
       }
       const cur = await readSettings();
       settings = normalize({ ...cur, customSites: [...cur.customSites, pattern] });
@@ -102,8 +104,12 @@ function addSite(pattern) {
       showMsg('');
       render();
       noteEl.hidden = false;
+      return true;
     },
-    () => showMsg('İzin istenemedi.'),
+    () => {
+      showMsg('İzin istenemedi.');
+      return false;
+    },
   );
 }
 
@@ -126,4 +132,5 @@ siteBtn.addEventListener('click', () => {
 
 enabledEl.addEventListener('change', save);
 for (const el of Object.values(siteEls)) el.addEventListener('change', save);
+initVolume({ addSite });
 load();

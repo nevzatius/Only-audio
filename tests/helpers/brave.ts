@@ -23,6 +23,11 @@ export interface LaunchOptions {
   extensionPath: string;
   /** Service worker yolu (uzantı köküne göre). Varsayılan: background/sw.js */
   serviceWorkerPath?: string;
+  /**
+   * Varsayılan true (--mute-audio). false: ses çıkışı açık kalır; yalnız tab.audible'ın gerçekten
+   * true olması gereken testler için (--mute-audio altında Chromium sekmeyi sesli saymıyor).
+   */
+  muteAudio?: boolean;
 }
 
 const portOfBrowser = new WeakMap<Browser, number>();
@@ -93,7 +98,7 @@ export async function launchBrave(opts: LaunchOptions): Promise<LaunchedBrave> {
     '--user-data-dir=' + profileDir,
     '--disable-extensions-except=' + extensionPath,
     '--load-extension=' + extensionPath,
-    '--mute-audio',
+    ...(opts.muteAudio === false ? [] : ['--mute-audio']),
     '--autoplay-policy=no-user-gesture-required',
     '--no-first-run',
     '--no-default-browser-check',

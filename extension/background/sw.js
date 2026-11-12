@@ -1,4 +1,5 @@
 import { SITES, isSiteActive, normalize, genericScriptId, GENERIC_ID_PREFIX } from '../shared/settings.js';
+import { syncVolumeScripts } from './volume.js';
 
 async function readSettings() {
   const raw = await chrome.storage.local.get(['enabled', 'sites', 'customSites']);
@@ -87,6 +88,7 @@ export function sync() {
       const settings = await readSettings();
       for (const name of Object.keys(SITES)) await syncSite(name, settings);
       await syncCustomSites(settings);
+      await syncVolumeScripts(settings.customSites); // ses kontrolcüsü ana anahtara bağlı değil
     })
     .catch((err) => console.warn('[only-audio] sync hatası:', err));
   return chain;

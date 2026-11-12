@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Only Audio ses fixture</title>
+<style>body { margin: 0; } video { width: 160px; height: 90px; }</style>
+<!-- Ses izi olan canlı akış: canvas (video izi) + WebAudio osilatör (ses izi, çok kısık). Dosya yok. -->
+<video id="v" autoplay playsinline></video>
+<script>
+  const c = document.createElement('canvas');
+  c.width = 160;
+  c.height = 90;
+  const g = c.getContext('2d');
+  let n = 0;
+  setInterval(() => {
+    g.fillStyle = 'hsl(' + ((n++ * 7) % 360) + ',70%,50%)';
+    g.fillRect(0, 0, 160, 90);
+  }, 100);
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  gain.gain.value = 0.003; // ~-50 dB: kulaklıkta bile duyulmaz, Chromium'un sessizlik eşiğinin (-72 dB) üstünde
+  const dest = ctx.createMediaStreamDestination();
+  osc.connect(gain).connect(dest);
+  osc.start();
+  ctx.resume().catch(() => {});
+  const v = document.getElementById('v');
+  v.srcObject = new MediaStream([...c.captureStream(10).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  v.play().catch(() => {});
+  // Test yardımcıları: sayfaya sonradan medya öğesi ekler.
+  window.addMedia = (tag) => {
+    const el = document.createElement(tag);
+    el.id = 'late-' + tag;
+    document.body.append(el);
+    return el.volume;
+  };
+</script>

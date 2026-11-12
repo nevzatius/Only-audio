@@ -38,7 +38,7 @@ The YouTube, Twitch and Kick paths rely on undocumented site internals and can b
 
 ### Install
 
-1. Get the extension folder: either download `audio-only-v0.3.1.zip` from the [Releases](../../releases) page and **unzip it**, or clone this repo and use its [extension/](extension/) folder.
+1. Get the extension folder: either download `audio-only-v0.4.0.zip` from the [Releases](../../releases) page and **unzip it**, or clone this repo and use its [extension/](extension/) folder.
 2. Open `brave://extensions` (or `chrome://extensions`).
 3. Turn on **Developer mode**.
 4. Click **Load unpacked** and select the unzipped folder (or `extension/`), i.e. the one containing `manifest.json`.
@@ -47,10 +47,11 @@ The browser reads the extension from that folder; moving or deleting it removes 
 
 ### Usage
 
-- Open a supported site; audio-only starts automatically while the extension is on. Tabs that were already open need a reload after toggling.
+- Open a supported site; audio-only starts automatically while the extension is on. Tabs that were already open need a reload after toggling. (The volume controller below works independently of the master switch.)
 - The toolbar popup has a master switch and per-site switches (YouTube / Twitch / Kick).
 - **Add a site:** open the page, click the extension icon, press **Add this site**, and grant the permission the browser asks for. Reload the page. Remove it with **Remove this site** or from the list in the popup. Built-in sites and non-http(s) pages cannot be added.
 - **Back to video:** the cover that replaces the player has a **Back to video** button that restores the normal player.
+- **Tab volume controller:** the **Volume** section of the popup lists tabs that are playing sound, muted tabs and tabs you have set a level for. Each row has the favicon, the title (click it to switch to that tab), a 0–100 slider and a mute button. The slider sets `volume` on every `<video>`/`<audio>` in the tab (including ones added later) and re-applies it if the site changes it; the value lasts until the tab is closed. Muting uses the browser's tab mute, which works on every site. The slider only works on YouTube, Twitch, Kick and sites you added; other tabs show it disabled, and since the extension has no `tabs` permission their title and address are hidden. Setting a level of 100% hands control back to the site's own volume bar. Boosting above 100% is not supported.
 
 ### Known limits
 
@@ -60,6 +61,7 @@ Details in [docs/known-issues.md](docs/known-issues.md).
 - On Twitch and Kick the network difference between `audio_only` and 160p is small (~15%); the real gain is that decoding stops.
 - Twitch may occasionally stall after the switch to `audio_only`; the extension waits 5 s of playback before switching.
 - Kick may show a Cloudflare bot check to automated browsers; this affects the tests, not the extension.
+- Volume controller: only the top frame of a page is controlled (not embedded iframe players), and a level below 100% overrides the site's own volume bar.
 
 ### Tests
 
@@ -69,7 +71,7 @@ npm test         # npx playwright test
 npm run lint
 ```
 
-Tests use the system Brave (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`), started outside Playwright with `--remote-debugging-port` and attached via `chromium.connectOverCDP`. Each run uses a separate temporary `--user-data-dir` that is deleted afterwards; your real profile is not touched. Tests need network access to the live sites.
+Tests use the system Brave (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`), started outside Playwright with `--remote-debugging-port` and attached via `chromium.connectOverCDP`. Each run uses a separate temporary `--user-data-dir` that is deleted afterwards; your real profile is not touched. Tests need network access to the live sites. The volume tests play a very quiet tone from a local page (the browser must not be muted for Chromium to report a tab as audible).
 
 Packaging: `powershell -File scripts/package.ps1` creates `dist/audio-only-v<version>.zip`.
 
@@ -113,7 +115,7 @@ YouTube, Twitch ve Kick yolları belgelenmemiş site iç yapılarına dayanır; 
 
 ### Kurulum
 
-1. Uzantı klasörünü edinin: [Releases](../../releases) sayfasından `audio-only-v0.3.1.zip` dosyasını indirip **açın**, ya da depoyu klonlayıp [extension/](extension/) klasörünü kullanın.
+1. Uzantı klasörünü edinin: [Releases](../../releases) sayfasından `audio-only-v0.4.0.zip` dosyasını indirip **açın**, ya da depoyu klonlayıp [extension/](extension/) klasörünü kullanın.
 2. `brave://extensions` (veya `chrome://extensions`) adresini açın.
 3. **Geliştirici modu**nu açın.
 4. **Paketlenmemiş öğe yükle**'ye tıklayıp zip'ten çıkan klasörü (ya da `extension/`) seçin; içinde `manifest.json` olan klasör.
@@ -122,10 +124,11 @@ Tarayıcı uzantıyı bu klasörden okur; klasörü silerseniz veya taşırsanı
 
 ### Kullanım
 
-- Desteklenen bir siteyi açın; uzantı açıkken yalnız ses otomatik başlar. Önceden açık sekmeler, uzantıyı açıp kapattıktan sonra yenilenmelidir.
+- Desteklenen bir siteyi açın; uzantı açıkken yalnız ses otomatik başlar. Önceden açık sekmeler, uzantıyı açıp kapattıktan sonra yenilenmelidir. (Aşağıdaki ses kontrolcüsü ana anahtardan bağımsız çalışır.)
 - Araç çubuğu popup'ında ana anahtar ve site anahtarları (YouTube / Twitch / Kick) bulunur.
 - **Site ekleme:** sayfayı açın, uzantı simgesine tıklayın, **Bu siteyi ekle**'ye basın ve tarayıcının istediği izni verin. Sayfayı yenileyin. Kaldırmak için **Bu siteyi kaldır** ya da popup'taki listeden **Kaldır**. Yerleşik siteler ve http/https dışı sayfalar eklenemez.
 - **Videoya dön:** oynatıcının yerini alan kapaktaki **Videoya dön** düğmesi normal oynatıcıyı geri getirir.
+- **Sekme ses kontrolcüsü:** popup'taki **Ses** bölümü, ses çalan sekmeleri, sessize alınmış sekmeleri ve düzeyini ayarladığınız sekmeleri listeler. Her satırda favicon, başlık (tıklayınca o sekmeye geçer), 0–100 kaydırıcı ve sessize alma düğmesi vardır. Kaydırıcı, sekmedeki tüm `<video>`/`<audio>` öğelerinin `volume` değerini ayarlar (sonradan eklenenler dahil) ve site değiştirirse yeniden uygular; değer sekme kapanana kadar korunur. Sessize alma tarayıcının sekme susturmasını kullanır ve her sitede çalışır. Kaydırıcı yalnız YouTube, Twitch, Kick ve eklediğiniz sitelerde çalışır; diğer sekmelerde devre dışı görünür ve uzantının `tabs` izni olmadığından başlık ile adresleri gizlidir. %100'e getirmek kontrolü sitenin kendi ses çubuğuna geri verir. %100 üstüne yükseltme desteklenmez.
 
 ### Bilinen sınırlar
 
@@ -135,6 +138,7 @@ Ayrıntı: [docs/known-issues.md](docs/known-issues.md).
 - Twitch ve Kick'te `audio_only` ile 160p arasındaki ağ farkı küçüktür (~%15); asıl kazanç çözmenin durmasıdır.
 - Twitch'te oynatıcı `audio_only` geçişinden sonra ara sıra duraklayabilir; uzantı geçişi oynatmanın ilk 5 sn'sinden sonra yapar.
 - Kick, otomasyona Cloudflare bot kontrolü gösterebilir; bu uzantıyı değil testleri etkiler.
+- Ses kontrolcüsü: yalnız sayfanın üst çerçevesi denetlenir (gömülü iframe oynatıcılar değil) ve %100 altı bir düzey sitenin kendi ses çubuğunu geçersiz kılar.
 
 ### Testler
 
@@ -144,7 +148,7 @@ npm test         # npx playwright test
 npm run lint
 ```
 
-Testler sistemdeki Brave'i (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`) Playwright dışında `--remote-debugging-port` ile başlatır ve `chromium.connectOverCDP` ile bağlanır. Her çalıştırma ayrı, geçici bir `--user-data-dir` kullanır ve sonunda siler; gerçek profilinize dokunulmaz. Testler canlı sitelere erişim gerektirir.
+Testler sistemdeki Brave'i (`C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe`) Playwright dışında `--remote-debugging-port` ile başlatır ve `chromium.connectOverCDP` ile bağlanır. Her çalıştırma ayrı, geçici bir `--user-data-dir` kullanır ve sonunda siler; gerçek profilinize dokunulmaz. Testler canlı sitelere erişim gerektirir. Ses testleri yerel bir sayfadan çok kısık bir ton çalar (Chromium'un sekmeyi sesli sayması için tarayıcı sessize alınmamalıdır).
 
 Paket: `powershell -File scripts/package.ps1` → `dist/audio-only-v<sürüm>.zip`.
 

@@ -37,6 +37,7 @@ extension/
     twitch/
     kick/
     generic/         kullanıcının eklediği siteler (bkz. docs/plan-faz3.md)
+  popup/             araç çubuğu penceresi; "Ses" bölümü = sekme ses kontrolcüsü (bkz. docs/plan-faz5.md)
   rules/             statik DNR kuralları
 tests/               Playwright + sistem Brave'i
 docs/

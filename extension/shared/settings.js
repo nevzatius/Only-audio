@@ -43,11 +43,16 @@ export function originPatternFor(url) {
   return isValidPattern(p) ? p : null;
 }
 
-// Kalıba bağlı kararlı betik kimliği; kind: 'main' | 'bridge'.
-export function genericScriptId(kind, pattern) {
+// Kalıptan kararlı, kısa özet (betik kimlikleri için).
+export function hashPattern(pattern) {
   let h = 5381;
   for (let i = 0; i < pattern.length; i++) h = ((h * 33) ^ pattern.charCodeAt(i)) >>> 0;
-  return GENERIC_ID_PREFIX + kind + '-' + h.toString(36);
+  return h.toString(36);
+}
+
+// Kalıba bağlı kararlı betik kimliği; kind: 'main' | 'bridge'.
+export function genericScriptId(kind, pattern) {
+  return GENERIC_ID_PREFIX + kind + '-' + hashPattern(pattern);
 }
 
 // Site kayıt tablosu: service worker bunu MAIN world içerik betiği olarak kaydeder.
