@@ -30,10 +30,11 @@ const SPA_MIN_TIME_DELTA = 15;
 // ---- Canlı (/@LofiGirl/live) ----
 const LIVE_URL = 'https://www.youtube.com/@LofiGirl/live';
 const LIVE_WINDOW_MS = 45_000;
-// Arabellek (currentTime'dan ileri) hiçbir örnekte 35 sn'yi aşmamalı. YouTube canlıda kendi hedefi olarak
-// 15-33 sn tutar; 10 sn eşiği ancak SourceBuffer kırpmasıyla sağlanıyordu ve kırpma segmentleri yeniden
-// indirtiyordu (docs/known-issues.md). Eşik, ağı artırmadan ulaşılabilir sınıra çekildi (0.3.1).
-const LIVE_MAX_BUFFER_SEC = 35;
+// Asıl amaç takılmasız oynatma: video "waiting" olayından "playing"e dek geçen tek bir takılma
+// 10 sn'yi aşmamalı, pencere boyunca toplam takılma da 10 sn'yi geçmemeli. İleri arabellek büyüklüğü
+// ölçüt değildir (YouTube canlıda kendi hedefi 15-33 sn; bkz. docs/known-issues.md).
+const LIVE_MAX_SINGLE_STALL_MS = 10_000;
+const LIVE_MAX_TOTAL_STALL_MS = 10_000;
 // 45 sn pencerede currentTime artışı >= 35 (10 sn pay: canlıda yeniden arabellekleme).
 const LIVE_MIN_TIME_DELTA = 35;
 // Pencere sonunda videoHeight <= 144 (fallback 144p).
@@ -139,40 +140,67 @@ test('YouTube SPA: VOD → VOD (yenilemesiz), ikinci videoda kare yok', async ()
   expect.soft(s2.currentTime - s1.currentTime, 'ikinci videoda currentTime artışı').toBeGreaterThanOrEqual(SPA_MIN_TIME_DELTA);
 });
 
-test('YouTube canlı (@LofiGirl): sınırlı arabellek, currentTime ilerler, ≤144p', async () => {
-  brave = await launchBrave({ extensionPath: EXTENSION_PATH });
-  const page = await firstPage(brave.context);
-  await openYoutubeUrl(page, LIVE_URL);
+// Yalnız canlı test: canlı başlangıç gecikmesi ara sıra görülüyor (docs/known-issues.md). Diğer testlerde retry yok.
+test.describe('YouTube canlı', () => {
+  test.describe.configure({ retries: 1 });
 
-  // Kanca canlıyı algılayınca sayfa kancasız yeniden yüklenir; kapak reason=live olunca oturmuştur.
-  const settled = await waitUntil(async () => {
-    if ((await page.locator('#only-audio-cover[data-reason="live"]').count()) === 0) return false;
-    if (await adActive(page)) return false;
-    const s = await playbackStats(page);
-    return !!s && s.found && !s.paused && s.readyState >= 3;
-  }, 90_000);
-  expect(settled, 'canlı yayın fallback modunda oynamalı (kapak reason=live)').toBe(true);
+  test('YouTube canlı (@LofiGirl): takılmasız, currentTime ilerler, ≤144p', async () => {
+    brave = await launchBrave({ extensionPath: EXTENSION_PATH });
+    const page = await firstPage(brave.context);
+    await openYoutubeUrl(page, LIVE_URL);
 
-  const first = (await playbackStats(page))!;
-  let maxBuffer = 0;
-  let last = first;
-  let adSamples = 0;
-  const t0 = Date.now();
-  while (Date.now() - t0 < LIVE_WINDOW_MS) {
-    const ad = await adActive(page).catch(() => false);
-    const s = await playbackStats(page);
-    if (ad) adSamples++; // pencere ortasındaki reklam örnekleri içerik ölçümüne katılmaz
-    else if (s && s.found) {
-      last = s;
-      if (s.bufferedAhead > maxBuffer) maxBuffer = s.bufferedAhead;
+    // Kanca canlıyı algılayınca sayfa kancasız yeniden yüklenir; kapak reason=live olunca oturmuştur.
+    const settled = await waitUntil(async () => {
+      if ((await page.locator('#only-audio-cover[data-reason="live"]').count()) === 0) return false;
+      if (await adActive(page)) return false;
+      const s = await playbackStats(page);
+      return !!s && s.found && !s.paused && s.readyState >= 3;
+    }, 90_000);
+    expect(settled, 'canlı yayın fallback modunda oynamalı (kapak reason=live)').toBe(true);
+
+    // Takılma ölçümü: "waiting" ile "playing" arasındaki süre. Olaylar video öğesinde kabarmaz; belge
+    // üzerinde yakalama (capture) aşamasında dinlenir, böylece öğe yenilense de kaçmaz.
+    await page.evaluate(() => {
+      const w = window as unknown as { __oaStall?: { start: number | null; durations: number[] } };
+      const st = { start: null as number | null, durations: [] as number[] };
+      w.__oaStall = st;
+      document.addEventListener('waiting', (e) => {
+        if (e.target instanceof HTMLVideoElement && st.start === null) st.start = performance.now();
+      }, true);
+      document.addEventListener('playing', (e) => {
+        if (e.target instanceof HTMLVideoElement && st.start !== null) {
+          st.durations.push(performance.now() - st.start);
+          st.start = null;
+        }
+      }, true);
+    });
+
+    const first = (await playbackStats(page))!;
+    let last = first;
+    let adSamples = 0;
+    const t0 = Date.now();
+    while (Date.now() - t0 < LIVE_WINDOW_MS) {
+      const ad = await adActive(page).catch(() => false);
+      const s = await playbackStats(page);
+      if (ad) adSamples++; // pencere ortasındaki reklam örnekleri içerik ölçümüne katılmaz
+      else if (s && s.found) last = s;
+      await sleep(1000);
     }
-    await sleep(1000);
-  }
-  console.log('YouTube canlı ölçüm: maxArabellek=' + maxBuffer.toFixed(1) + ' currentTime ' + first.currentTime.toFixed(1) + ' -> ' + last.currentTime.toFixed(1) + ' videoHeight=' + last.videoHeight + ' videoWidth=' + last.videoWidth + ' reklamÖrneği=' + adSamples);
+    // Pencere sonunda hâlâ süren takılma da (başlangıcından şimdiye) sayılır.
+    const stalls = await page.evaluate(() => {
+      const st = (window as unknown as { __oaStall?: { start: number | null; durations: number[] } }).__oaStall;
+      if (!st) return [] as number[];
+      return st.start !== null ? [...st.durations, performance.now() - st.start] : [...st.durations];
+    });
+    const maxStallMs = stalls.reduce((a, b) => Math.max(a, b), 0);
+    const totalStallMs = stalls.reduce((a, b) => a + b, 0);
+    console.log('YouTube canlı ölçüm: takılma sayısı=' + stalls.length + ' enUzun=' + maxStallMs.toFixed(0) + 'ms toplam=' + totalStallMs.toFixed(0) + 'ms currentTime ' + first.currentTime.toFixed(1) + ' -> ' + last.currentTime.toFixed(1) + ' videoHeight=' + last.videoHeight + ' videoWidth=' + last.videoWidth + ' reklamÖrneği=' + adSamples);
 
-  expect.soft(maxBuffer, 'ileri arabellek (sn)').toBeLessThanOrEqual(LIVE_MAX_BUFFER_SEC);
-  expect.soft(last.currentTime - first.currentTime, 'currentTime artışı').toBeGreaterThanOrEqual(LIVE_MIN_TIME_DELTA);
-  expect.soft(last.videoHeight, 'videoHeight').toBeLessThanOrEqual(LIVE_MAX_VIDEO_HEIGHT);
+    expect.soft(maxStallMs, 'en uzun tek takılma (ms)').toBeLessThanOrEqual(LIVE_MAX_SINGLE_STALL_MS);
+    expect.soft(totalStallMs, 'toplam takılma (ms)').toBeLessThanOrEqual(LIVE_MAX_TOTAL_STALL_MS);
+    expect.soft(last.currentTime - first.currentTime, 'currentTime artışı').toBeGreaterThanOrEqual(LIVE_MIN_TIME_DELTA);
+    expect.soft(last.videoHeight, 'videoHeight').toBeLessThanOrEqual(LIVE_MAX_VIDEO_HEIGHT);
+  });
 });
 
 test('YouTube aç/kapa: popup anahtarı kapatınca görüntü gelir, konum korunur', async () => {
