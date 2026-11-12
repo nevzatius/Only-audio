@@ -67,7 +67,7 @@
       // Twitch: denetim katmanlarının altında kalması için ilk çocuk; YouTube: sona.
       // Kick: videonun hemen ardına (denetim katmanı sonraki kardeş, üstte kalır).
       if (state.site === 'twitch') container.prepend(cover);
-      else if (state.site === 'kick') {
+      else if (state.site === 'kick' || state.site === 'generic') {
         const video = container.querySelector(':scope > video');
         if (video) video.after(cover);
         else container.prepend(cover);
@@ -121,6 +121,18 @@
       });
     });
   }
+
+  // Genel adaptör: site kaldırılınca ya da uzantı kapatılınca açık sekme yenilenmeden geri alınır
+  // (MAIN world videoyu görünür yapar, buradaki kapak 'off' durumuyla silinir).
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !(changes.enabled || changes.customSites)) return;
+    if (!state || state.site !== 'generic') return;
+    chrome.storage.local.get(['enabled', 'customSites']).then((raw) => {
+      const list = Array.isArray(raw.customSites) ? raw.customSites : [];
+      const on = raw.enabled !== false && list.includes('*://' + location.hostname + '/*');
+      if (!on) send('disable');
+    });
+  });
 
   send('hello');
 })();

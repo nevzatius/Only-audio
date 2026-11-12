@@ -36,6 +36,7 @@ extension/
     youtube/
     twitch/
     kick/
+    generic/         kullanıcının eklediği siteler (bkz. docs/plan-faz3.md)
   rules/             statik DNR kuralları
 tests/               Playwright + sistem Brave'i
 docs/

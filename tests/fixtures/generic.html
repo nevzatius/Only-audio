@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Only Audio genel adaptör fixture</title>
+<style>
+  body { margin: 0; background: #fff; }
+  #player { width: 320px; height: 180px; background: #222; }
+  video { display: block; width: 320px; height: 180px; }
+</style>
+<!-- Küçük video: dosya yok; canvas.captureStream() ile çalışma anında üretilen canlı akış. -->
+<div id="player"><video id="v" muted autoplay playsinline></video></div>
+<script>
+  const c = document.createElement('canvas');
+  c.width = 320;
+  c.height = 180;
+  const g = c.getContext('2d');
+  let n = 0;
+  setInterval(() => {
+    g.fillStyle = 'hsl(' + ((n * 7) % 360) + ',70%,50%)';
+    g.fillRect(0, 0, 320, 180);
+    g.fillStyle = '#fff';
+    g.font = '24px sans-serif';
+    g.fillText(String(n++), 10, 30);
+  }, 33);
+  const v = document.getElementById('v');
+  v.srcObject = c.captureStream(30);
+  v.play().catch(() => {});
+</script>

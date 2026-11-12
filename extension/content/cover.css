@@ -30,8 +30,14 @@
   z-index: auto;
 }
 
+/* Genel adaptör (kullanıcının eklediği siteler): Kick gibi, videonun hemen ardında. */
+#only-audio-cover[data-site="generic"] {
+  z-index: auto;
+}
+
 #only-audio-cover[data-site="twitch"] #only-audio-restore,
-#only-audio-cover[data-site="kick"] #only-audio-restore {
+#only-audio-cover[data-site="kick"] #only-audio-restore,
+#only-audio-cover[data-site="generic"] #only-audio-restore {
   position: relative;
   z-index: 40;
 }
